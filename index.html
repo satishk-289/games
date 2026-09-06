@@ -1050,6 +1050,210 @@ const football = {
       if (this.currentLevel < this.maxLevels) {
         this.currentLevel++;
         this.loadLevel(this.currentLevel);
+const levelDevil = {
+  canvas: null,
+  ctx: null,
+  p: { x: 70, y: 260, vx: 0, vy: 0, w: 16, h: 26, onGround: false, dead: false },
+  door: { x: 690, y: 260, w: 26, h: 42, baseDoorX: 690, vy: 2 },
+  currentLevel: 1,
+  maxLevels: 50,
+  active: false,
+  won: false,
+  pitGap: 0,
+  pitX: 430,
+  gravityDir: 1,
+  jumpPower: -12.2,
+  runSpeed: 4.2,
+  invertedControls: false,
+  flashTimer: 0,
+  movingFloorOffset: 0,
+  hazards: [],
+  fallingBlocks: [],
+  featureTitle: "",
+
+  levelFeatures: [
+    "Trap Floor Opens", "Door Runs Forward", "Pop-up Spike at Midfield", "Falling Ceiling Anvil",
+    "False Door Teleports", "Super Gravity Jump", "Low Gravity Moon Walk", "Reversed Controls",
+    "Two Disappearing Platforms", "Surprise Spike Ceiling",
+    "Conveyor Belt Ground", "Moving Pit Chasm", "Door Bounces Vertically", "Spike Chases From Behind",
+    "Sudden Screen Blackout", "Floor Drops When You Jump", "Door Jumps When You Jump", "Slippery Ice Physics",
+    "Invisible Spikes Visible Only When Close", "Twin Crushers Falling Together",
+    "Upside Down Gravity", "Door Shrinks As You Approach", "Speed Boost Launch Trap", "Wind Blowing Backward",
+    "Platform Slides Forward", "False Floor Under Spikes", "Door Warps Between Walls", "Strobe Darkness",
+    "Floor Vanishes Underneath While Standing", "Spikes Shoot Out of Left Wall",
+    "Slow Motion Quicksand Walk", "Bouncing Anvil Pit", "Spike Waves from Right", "Door Leaps Over Player",
+    "Pit Widens Every Step", "Double Spike Leap", "Ceiling Falls Down to Squash", "Inverted Controls + Trap Pit",
+    "Door Teleports on Contact", "Floor Sinks into Void",
+    "Microscopic Hitbox Target", "Spikes Fall from Sky", "Wind Gale Towards Abyss", "Triple Falling Anvils",
+    "Upside Down Inverted Controls", "Collapsing Bridge Run", "Phantom Doors", "Hyper Speed Dash",
+    "Everything Moves Simultaneously", "The Ultimate Devil Gauntlet"
+  ],
+
+  init(canvasId, options = {}) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    this.currentLevel = 1;
+    this.won = false;
+    this.loadLevel(this.currentLevel);
+    this.active = true;
+  },
+
+  loadLevel(lvl) {
+    this.p.x = 70;
+    this.p.y = 260;
+    this.p.vx = 0;
+    this.p.vy = 0;
+    this.p.dead = false;
+    this.pitGap = 0;
+    this.pitX = 390;
+    this.door = { x: 690, y: 260, w: 26, h: 42, baseDoorX: 690, vy: 2 };
+    this.gravityDir = (lvl === 21 || lvl === 45) ? -1 : 1;
+    this.jumpPower = (lvl === 6) ? -16.5 : (lvl === 7) ? -8.5 : -12.2;
+    this.runSpeed = (lvl === 23 || lvl === 48) ? 7.2 : (lvl === 31) ? 2.3 : 4.2;
+    this.invertedControls = (lvl === 8 || lvl === 38 || lvl === 45);
+    this.hazards = [];
+    this.fallingBlocks = [];
+    this.featureTitle = this.levelFeatures[lvl - 1] || "Surprise Troll";
+
+    if ([3, 10, 19, 33, 36, 50].includes(lvl)) {
+      this.hazards.push({ x: 380, y: 320, w: 26, h: 20, curH: (lvl === 19 ? 0 : 20), trigger: (lvl === 19) });
+      if (lvl === 36 || lvl === 50) this.hazards.push({ x: 440, y: 320, w: 26, h: 20, curH: 20 });
+    }
+
+    if ([4, 20, 37, 44, 50].includes(lvl)) {
+      const count = lvl === 4 ? 1 : (lvl === 20 ? 2 : 3);
+      for (let i = 0; i < count; i++) {
+        this.fallingBlocks.push({ x: 330 + i * 120, y: 50, w: 46, h: 40, vy: 0, triggered: false });
+      }
+    }
+
+    if (lvl === 14) {
+      this.hazards.push({ x: 20, y: 300, w: 24, h: 24, curH: 24, vx: 2.2 });
+    }
+  },
+
+  restartCurrentLevel() {
+    this.loadLevel(this.currentLevel);
+  },
+
+  updatePhysics(keys) {
+    if (!this.active || this.won) return;
+    const p = this.p;
+    const lvl = this.currentLevel;
+
+    if (keys.b) {
+      this.restartCurrentLevel();
+      return;
+    }
+
+    if (p.dead) return;
+
+    let left = this.invertedControls ? keys.r : keys.l;
+    let right = this.invertedControls ? keys.l : keys.r;
+
+    if (left) p.vx = -this.runSpeed;
+    else if (right) p.vx = this.runSpeed;
+    else p.vx *= (lvl === 18 ? 0.94 : 0.72);
+
+    if (lvl === 11) p.vx -= 1.8;
+    if (lvl === 24 || lvl === 43) p.vx -= (lvl === 43 ? 2.5 : 1.6);
+
+    if (keys.f && p.onGround) {
+      p.vy = this.jumpPower * this.gravityDir;
+      p.onGround = false;
+      if (lvl === 16) this.pitGap += 25;
+      if (lvl === 17) this.door.y -= 40;
+    }
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.68 * this.gravityDir;
+
+    if ([1, 35, 46, 50].includes(lvl) && p.x > this.pitX - 100) {
+      this.pitGap = Math.min(130, this.pitGap + (lvl === 35 ? 7 : 4.5));
+    }
+
+    if (lvl === 12) {
+      this.pitX += Math.sin(Date.now() / 250) * 2;
+      this.pitGap = 80;
+    }
+
+    if (lvl === 2 && p.x > 450 && this.door.x < 740) this.door.x += 3.2;
+    if (lvl === 34 && p.x > 480 && this.door.x > 200) {
+      this.door.x -= 4.2;
+      this.door.y = 210;
+    }
+
+    if ([5, 39, 47].includes(lvl) && p.x > 500 && this.door.x > 200) {
+      this.door.x = 80;
+    }
+
+    if (lvl === 22 && p.x > 300) {
+      this.door.w = Math.max(8, 26 - (p.x - 300) * 0.05);
+      this.door.h = Math.max(14, 42 - (p.x - 300) * 0.08);
+    }
+
+    if (lvl === 13) {
+      this.door.y += this.door.vy;
+      if (this.door.y < 190 || this.door.y > 275) this.door.vy *= -1;
+    }
+
+    if (lvl === 14 && this.hazards[0]) {
+      this.hazards[0].x += 2.3;
+    }
+
+    this.hazards.forEach(h => {
+      if (h.trigger && Math.abs(p.x - h.x) < 70) {
+        if (h.curH < h.h) h.curH += 4;
+      }
+    });
+
+    this.fallingBlocks.forEach(fb => {
+      if (Math.abs(p.x - fb.x) < 65) fb.triggered = true;
+      if (fb.triggered && fb.y < 275) {
+        fb.vy += 1.4;
+        fb.y += fb.vy;
+      }
+    });
+
+    const groundY = (this.gravityDir === 1) ? 320 : 190;
+    const pitActive = this.pitGap > 0;
+    const inPit = pitActive && (p.x + p.w > this.pitX && p.x < this.pitX + this.pitGap);
+
+    if (this.gravityDir === 1) {
+      if (!inPit && p.y + p.h >= groundY && p.y < groundY + 12) {
+        p.y = groundY - p.h;
+        p.vy = 0;
+        p.onGround = true;
+      } else if (inPit && p.y + p.h >= groundY) {
+        p.onGround = false;
+      }
+    } else {
+      if (p.y <= groundY) {
+        p.y = groundY;
+        p.vy = 0;
+        p.onGround = true;
+      }
+    }
+
+    if (p.y > 430 || p.y < 20) this.triggerDeath();
+
+    this.hazards.forEach(h => {
+      if (h.curH > 4 && p.x + p.w > h.x && p.x < h.x + h.w && p.y + p.h > (h.y - h.curH)) {
+        this.triggerDeath();
+      }
+    });
+
+    this.fallingBlocks.forEach(fb => {
+      if (p.x + p.w > fb.x && p.x < fb.x + fb.w && p.y + p.h > fb.y && p.y < fb.y + fb.h) {
+        this.triggerDeath();
+      }
+    });
+
+    if (p.x + p.w >= this.door.x && p.x <= this.door.x + this.door.w && Math.abs(p.y + p.h - (this.door.y + this.door.h)) < 24) {
+      if (this.currentLevel < this.maxLevels) {
+        this.currentLevel++;
+        this.loadLevel(this.currentLevel);
       } else {
         this.won = true;
         document.getElementById("btn-replay").classList.remove("hidden");
@@ -1059,7 +1263,7 @@ const football = {
 
   triggerDeath() {
     this.p.dead = true;
-    setTimeout(() => this.restartCurrentLevel(), 750);
+    setTimeout(() => this.restartCurrentLevel(), 700);
   },
 
   render() {
@@ -1069,34 +1273,51 @@ const football = {
     ctx.fillStyle = "#d97706";
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    if (this.currentLevel === 15 || this.currentLevel === 28) {
+      if (Math.floor(Date.now() / 350) % 2 === 0) {
+        ctx.fillStyle = "#0c0a09";
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    }
+
     ctx.fillStyle = "#1c1917";
-    ctx.font = "900 22px monospace";
+    ctx.font = "900 20px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(`LEVEL ${this.currentLevel} / ${this.maxLevels}`, 400, 42);
+    ctx.fillText(`LEVEL ${this.currentLevel} / ${this.maxLevels}`, 400, 36);
+
+    ctx.font = "bold 13px system-ui";
+    ctx.fillStyle = "#451a03";
+    ctx.fillText(`Modifier: ${this.featureTitle}`, 400, 58);
 
     ctx.fillStyle = "#f59e0b";
-    ctx.fillRect(40, 180, 390, 140);
-    const rightX = 430 + this.pitGap;
-    ctx.fillRect(rightX, 180, 760 - rightX, 140);
+    if (this.gravityDir === 1) {
+      ctx.fillRect(40, 180, this.pitX - 40, 140);
+      const rightX = this.pitX + this.pitGap;
+      ctx.fillRect(rightX, 180, 760 - rightX, 140);
 
-    ctx.fillStyle = "#92400e";
-    ctx.fillRect(430, 320, this.pitGap, 120);
+      if (this.pitGap > 0) {
+        ctx.fillStyle = "#92400e";
+        ctx.fillRect(this.pitX, 320, this.pitGap, 120);
+      }
+    } else {
+      ctx.fillRect(40, 50, 720, 140);
+    }
 
     ctx.fillStyle = "#292524";
-    this.spikes.forEach(s => {
-      if (s.currentH > 0) {
+    this.hazards.forEach(h => {
+      if (h.curH > 0) {
         ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x + s.w / 2, s.y - s.currentH);
-        ctx.lineTo(s.x + s.w, s.y);
+        ctx.moveTo(h.x, h.y);
+        ctx.lineTo(h.x + h.w / 2, h.y - h.curH);
+        ctx.lineTo(h.x + h.w, h.y);
         ctx.fill();
       }
     });
 
-    if (this.currentLevel === 4) {
-      ctx.fillStyle = "#451a03";
-      ctx.fillRect(this.fallingBlock.x, this.fallingBlock.y, this.fallingBlock.w, this.fallingBlock.h);
-    }
+    ctx.fillStyle = "#451a03";
+    this.fallingBlocks.forEach(fb => {
+      ctx.fillRect(fb.x, fb.y, fb.w, fb.h);
+    });
 
     ctx.fillStyle = "#44403c";
     ctx.fillRect(this.door.x, this.door.y, this.door.w, this.door.h);
@@ -1105,7 +1326,7 @@ const football = {
     ctx.strokeRect(this.door.x, this.door.y, this.door.w, this.door.h);
     ctx.fillStyle = "#fbbf24";
     ctx.beginPath();
-    ctx.arc(this.door.x + 6, this.door.y + 22, 2.5, 0, Math.PI * 2);
+    ctx.arc(this.door.x + 5, this.door.y + this.door.h / 2, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
     if (!this.p.dead) {
@@ -1115,15 +1336,16 @@ const football = {
     }
 
     if (this.won) {
-      ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
       ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       ctx.fillStyle = "#facc15";
       ctx.font = "bold 34px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText("😈 ALL LEVELS BEATEN! 😈", this.canvas.width / 2, this.canvas.height / 2);
+      ctx.fillText("😈 YOU SURVIVED ALL 50 LEVELS! 😈", this.canvas.width / 2, this.canvas.height / 2);
     }
   }
 };
+
       
     // Runner Obstacles
     const hurdles = [260, 480, 700];
