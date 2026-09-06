@@ -3,861 +3,789 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Arcade Hub - 2 Player Multiplayer</title>
-  <style>
-    :root {
-      --bg: #141126;
-      --card-bg: #1f1a3a;
-      --accent: #38bdf8;
-      --text: #ffffff;
-      --muted: #94a3b8;
-    }
-    * { 
-      box-sizing: border-box; 
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
-      margin: 0; padding: 0; 
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      overflow-x: hidden;
-      touch-action: manipulation;
-    }
-
-    /* Top Creator Banner */
-    .creator-banner {
-      width: 100%;
-      background: linear-gradient(90deg, #4f46e5, #ec4899, #f59e0b);
-      color: #ffffff;
-      padding: 0.65rem 1rem;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.95rem;
-      text-decoration: none;
-      display: block;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      letter-spacing: 0.5px;
-    }
-    .creator-banner:hover { opacity: 0.92; }
-
-    .main-container {
-      width: 100%;
-      max-width: 600px;
-      padding: 1.5rem 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* Game App Icon Grid */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    .game-card {
-      aspect-ratio: 1.1;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
-      border: 2px solid transparent;
-      transition: transform 0.15s, border-color 0.2s;
-      padding: 10px;
-      text-align: center;
-    }
-    .game-card:active { transform: scale(0.95); }
-    .game-card .icon { font-size: 2.8rem; margin-bottom: 6px; }
-    .game-card .name { font-size: 0.95rem; font-weight: 800; }
-    .game-card .desc { font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
-
-    /* Unique Card Themes */
-    .card-racer  { background: linear-gradient(145deg, #0284c7, #0369a1); border-color: #38bdf8; }
-    .card-pong   { background: linear-gradient(145deg, #10b981, #047857); border-color: #34d399; }
-    .card-ttt    { background: linear-gradient(145deg, #f59e0b, #b45309); border-color: #fde047; }
-    .card-derby  { background: linear-gradient(145deg, #e11d48, #9f1239); border-color: #fb7185; }
-
-    /* Matchmaking Panels */
-    .panel {
-      background: var(--card-bg);
-      border: 1px solid #332b5e;
-      border-radius: 16px;
-      padding: 1.5rem;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-      text-align: center;
-    }
-
-    .tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
-    .tab {
-      flex: 1;
-      padding: 0.65rem;
-      border-radius: 8px;
-      background: #141126;
-      border: 1px solid #332b5e;
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 700;
-    }
-    .tab.active { background: var(--accent); color: #090d16; border-color: var(--accent); }
-
-    input, select, button {
-      width: 100%;
-      padding: 0.8rem;
-      border-radius: 8px;
-      border: 1px solid #332b5e;
-      background: #141126;
-      color: var(--text);
-      font-size: 0.95rem;
-      margin-bottom: 0.85rem;
-    }
-    button.btn-action {
-      background: var(--accent);
-      color: #090d16;
-      font-weight: 800;
-      border: none;
-      cursor: pointer;
-      padding: 0.85rem;
-      transition: opacity 0.2s;
-    }
-    button.btn-action:hover { opacity: 0.9; }
-
-    .code-box {
-      background: #141126;
-      border: 2px dashed var(--accent);
-      border-radius: 10px;
-      padding: 0.85rem;
-      font-size: 2.2rem;
-      font-weight: 900;
-      letter-spacing: 6px;
-      color: var(--accent);
-      margin: 1rem 0;
-    }
-
-    /* Game Play Area */
-    #game-arena {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 880px;
-    }
-    .hud {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      color: var(--muted);
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-    }
-    .hud b { color: #fff; }
-    canvas {
-      border: 2px solid #332b5e;
-      border-radius: 14px;
-      width: 100%;
-      height: auto;
-      display: block;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      background: #090d16;
-    }
-
-    /* Mobile Controls for Racer / Pong / Derby */
-    .mobile-controls {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 880px;
-      margin-top: 0.8rem;
-    }
-    .ctrl-group { display: flex; gap: 10px; }
-    .touch-btn {
-      width: 65px; height: 65px;
-      border-radius: 50%;
-      background: #1f1a3a;
-      border: 2px solid #475569;
-      color: #fff;
-      font-size: 1.4rem;
-      font-weight: bold;
-      display: flex; align-items: center; justify-content: center;
-      touch-action: none;
-    }
-    .touch-btn:active { background: var(--accent); color: #000; }
-    .touch-btn.gas:active { background: #22c55e; }
-    .touch-btn.brake:active { background: #ef4444; }
-
-    /* Tic-Tac-Toe Arena */
-    #ttt-box {
-      display: none;
-      width: 100%;
-      max-width: 360px;
-      margin-top: 1rem;
-    }
-    .ttt-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      width: 100%;
-      margin: 1rem 0;
-    }
-    .ttt-cell {
-      aspect-ratio: 1;
-      background: #141126;
-      border: 2px solid #332b5e;
-      border-radius: 12px;
-      font-size: 2.8rem;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--accent);
-    }
-
-    .btn-back {
-      background: transparent;
-      border: 1px solid #475569;
-      color: var(--muted);
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-    .hidden { display: none !important; }
-  </style>
+  <title>Satish Games - 2 Player & Solo</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-  <a class="creator-banner" href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer">
-    Created by satish
-  </a>
+  <header class="top-bar">
+    <div class="brand-title">🎮 2 Player Games</div>
+    <a href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer" class="creator-badge">
+      <span>Made by Satish</span>
+      <span class="insta-handle">@_satish_official_16</span>
+    </a>
+  </header>
 
-  <div class="main-container">
+  <main id="lobbyView" class="container">
+    <section class="room-panel">
+      <div class="room-input-group">
+        <input type="text" id="directRoomInput" placeholder="Enter 4-digit Room Code" maxlength="6" />
+        <button id="btnJoinCode" class="btn-action">Join Room</button>
+      </div>
+      <p class="room-hint">Or click any game below to host a room or challenge the Bot!</p>
+    </section>
 
-    <div id="hub-view" style="width: 100%; text-align: center;">
-      <div class="games-grid">
-        <div class="game-card card-racer" id="launch-racer">
-          <div class="icon">🏎️</div>
-          <div class="name">Apex Race</div>
-          <div class="desc">Track Racer (Car & Bike)</div>
+    <section class="game-grid" id="gameGrid"></section>
+  </main>
+
+  <div id="modeModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 id="modalGameTitle">Select Mode</h2>
+      <p id="modalGameDesc">Choose how you want to challenge your opponent:</p>
+      <div class="modal-buttons">
+        <button id="btnPlayBot" class="btn-primary">🤖 Play vs Bot (AI)</button>
+        <button id="btnCreateRoom" class="btn-accent">👥 Create Room (Host)</button>
+        <div class="join-box">
+          <input type="text" id="modalRoomCode" placeholder="Code (e.g. 4821)" maxlength="6" />
+          <button id="btnJoinRoom" class="btn-secondary">Join Friend</button>
         </div>
-
-        <div class="game-card card-pong" id="launch-pong">
-          <div class="icon">🏓</div>
-          <div class="name">Neon Pong</div>
-          <div class="desc">Fast Paddle Deflection</div>
-        </div>
-
-        <div class="game-card card-ttt" id="launch-ttt">
-          <div class="icon">⭕</div>
-          <div class="name">Tic Tac Toe</div>
-          <div class="desc">Turn-Based Strategy</div>
-        </div>
-
-        <div class="game-card card-derby" id="launch-derby">
-          <div class="icon">💥</div>
-          <div class="name">Bumper Derby</div>
-          <div class="desc">Knock Opponent Off Ring</div>
-        </div>
+        <button id="btnCloseModal" class="btn-close">Cancel</button>
       </div>
     </div>
-
-    <div class="panel hidden" id="lobby-panel">
-      <h2 id="lobby-title" style="color: var(--accent); margin-bottom: 0.2rem;">Matchmaking</h2>
-      <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem;">2-Player Online Match</p>
-
-      <div class="tabs">
-        <button class="tab active" id="tab-create">Create Room</button>
-        <button class="tab" id="tab-join">Join Room</button>
-      </div>
-
-      <div id="section-create">
-        <input type="text" id="create-name" placeholder="Your Name" maxlength="12" value="Player 1" />
-        <div id="vehicle-select-wrap">
-          <select id="create-vehicle">
-            <option value="car">🏎️ Sports Car</option>
-            <option value="bike">🏍️ Racing Bike</option>
-          </select>
-        </div>
-        <button class="btn-action" id="btn-create-room">Create Room & Get Code</button>
-      </div>
-
-      <div id="section-join" class="hidden">
-        <input type="text" id="join-name" placeholder="Your Name" maxlength="12" value="Player 2" />
-        <div id="vehicle-join-wrap">
-          <select id="join-vehicle">
-            <option value="car">🏎️ Sports Car</option>
-            <option value="bike">🏍️ Racing Bike</option>
-          </select>
-        </div>
-        <input type="text" id="join-code" placeholder="Enter 4-Letter Code" maxlength="4" style="text-transform: uppercase;" />
-        <button class="btn-action" id="btn-join-room">Join Match</button>
-      </div>
-
-      <div id="section-wait" class="hidden">
-        <p style="font-size: 0.85rem; color: var(--muted);">Share this room code with Player 2:</p>
-        <div class="code-box" id="display-room-code">----</div>
-        <p style="font-size: 0.85rem; color: var(--accent);">Waiting for Player 2 to join...</p>
-      </div>
-
-      <button class="btn-back" id="btn-back-hub">← Back to Games Menu</button>
-    </div>
-
-    <div id="game-arena">
-      <div class="hud">
-        <span>Player: <b id="hud-name">-</b></span>
-        <span id="hud-stat-1">Speed: <b id="hud-speed">0</b> km/h</span>
-        <span id="hud-stat-2">Lap: <b id="hud-lap">1/3</b></span>
-        <span>Room: <b id="hud-room">----</b></span>
-      </div>
-
-      <canvas id="arenaCanvas" width="880" height="520"></canvas>
-
-      <div id="ttt-box">
-        <div id="ttt-turn" style="text-align: center; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem;">Connecting...</div>
-        <div class="ttt-grid">
-          <div class="ttt-cell" data-idx="0"></div>
-          <div class="ttt-cell" data-idx="1"></div>
-          <div class="ttt-cell" data-idx="2"></div>
-          <div class="ttt-cell" data-idx="3"></div>
-          <div class="ttt-cell" data-idx="4"></div>
-          <div class="ttt-cell" data-idx="5"></div>
-          <div class="ttt-cell" data-idx="6"></div>
-          <div class="ttt-cell" data-idx="7"></div>
-          <div class="ttt-cell" data-idx="8"></div>
-        </div>
-      </div>
-
-      <div class="mobile-controls" id="touch-controls">
-        <div class="ctrl-group">
-          <div class="touch-btn" id="ctrl-left">◀</div>
-          <div class="touch-btn" id="ctrl-right">▶</div>
-        </div>
-        <div class="ctrl-group">
-          <div class="touch-btn brake" id="ctrl-brake">REV</div>
-          <div class="touch-btn gas" id="ctrl-gas">GAS</div>
-        </div>
-      </div>
-
-      <button id="btn-rematch" class="btn-action hidden" style="margin-top: 14px; max-width: 220px;">Play Again</button>
-      <button class="btn-back" id="btn-exit-game">Exit to Menu</button>
-    </div>
-
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { 
-      getDatabase, ref, set, get, update, onValue, onDisconnect, runTransaction 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBzLchy5M2fLne4c7Ghw1KNN8wVrlZdd8M",
-      authDomain: "friendsgame-872f5.firebaseapp.com",
-      databaseURL: "https://friendsgame-872f5-default-rtdb.firebaseio.com",
-      projectId: "friendsgame-872f5",
-      storageBucket: "friendsgame-872f5.firebasestorage.app",
-      messagingSenderId: "522534013233",
-      appId: "1:522534013233:web:f5faa6e6795023d0420810",
-      measurementId: "G-PW5H3G97QR"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    let myUid = null;
-    let selectedGame = "racer";
-    let roomCode = null;
-    let myRole = null;
-    let currentRoom = null;
-
-    // Secure anonymous login
-    signInAnonymously(auth).then(cred => {
-      myUid = cred.user.uid;
-    }).catch(err => {
-      console.error("Auth error:", err);
-    });
-
-    async function ensureAuth() {
-      if (myUid) return myUid;
-      const cred = await signInAnonymously(auth);
-      myUid = cred.user.uid;
-      return myUid;
-    }
-
-    // UI Elements
-    const hubView = document.getElementById("hub-view");
-    const lobbyPanel = document.getElementById("lobby-panel");
-    const gameArena = document.getElementById("game-arena");
-    const lobbyTitle = document.getElementById("lobby-title");
-    const btnBackHub = document.getElementById("btn-back-hub");
-    const btnExitGame = document.getElementById("btn-exit-game");
-
-    const tabCreate = document.getElementById("tab-create");
-    const tabJoin = document.getElementById("tab-join");
-    const secCreate = document.getElementById("section-create");
-    const secJoin = document.getElementById("section-join");
-    const secWait = document.getElementById("section-wait");
-    const displayCode = document.getElementById("display-room-code");
-
-    const hudName = document.getElementById("hud-name");
-    const hudRoom = document.getElementById("hud-room");
-    const hudStat1 = document.getElementById("hud-stat-1");
-    const hudStat2 = document.getElementById("hud-stat-2");
-    const btnRematch = document.getElementById("btn-rematch");
-    const canvas = document.getElementById("arenaCanvas");
-    const ctx = canvas.getContext("2d");
-    const tttBox = document.getElementById("ttt-box");
-    const touchControls = document.getElementById("touch-controls");
-
-    function openGameLobby(gameKey, title) {
-      selectedGame = gameKey;
-      lobbyTitle.textContent = title;
-      hubView.classList.add("hidden");
-      lobbyPanel.classList.remove("hidden");
-
-      const needsVehicle = gameKey === "racer" || gameKey === "derby";
-      document.getElementById("vehicle-select-wrap").style.display = needsVehicle ? "block" : "none";
-      document.getElementById("vehicle-join-wrap").style.display = needsVehicle ? "block" : "none";
-    }
-
-    document.getElementById("launch-racer").onclick = () => openGameLobby("racer", "Apex Race");
-    document.getElementById("launch-pong").onclick = () => openGameLobby("pong", "Neon Pong");
-    document.getElementById("launch-ttt").onclick = () => openGameLobby("ttt", "Tic Tac Toe");
-    document.getElementById("launch-derby").onclick = () => openGameLobby("derby", "Bumper Derby");
-
-    btnBackHub.onclick = () => {
-      lobbyPanel.classList.add("hidden");
-      hubView.classList.remove("hidden");
-    };
-    btnExitGame.onclick = () => location.reload();
-
-    tabCreate.onclick = () => {
-      tabCreate.classList.add("active"); tabJoin.classList.remove("active");
-      secCreate.classList.remove("hidden"); secJoin.classList.add("hidden");
-    };
-    tabJoin.onclick = () => {
-      tabJoin.classList.add("active"); tabCreate.classList.remove("active");
-      secJoin.classList.remove("hidden"); secCreate.classList.add("hidden");
-    };
-
-    // FIXED CODE GENERATOR
-    function randomCode() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let res = "";
-      for (let i = 0; i < 4; i++) res += chars[Math.floor(Math.random() * chars.length)];
-      return res;
-    }
-
-    // Controls System
-    const keys = { forward: false, backward: false, left: false, right: false };
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = true;
-      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = true;
-      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
-      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
-    });
-    window.addEventListener("keyup", (e) => {
-      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = false;
-      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = false;
-      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
-      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
-    });
-
-    function bindTouch(id, prop) {
-      const el = document.getElementById(id);
-      const on = (e) => { e.preventDefault(); keys[prop] = true; };
-      const off = (e) => { e.preventDefault(); keys[prop] = false; };
-      el.addEventListener("touchstart", on, { passive: false });
-      el.addEventListener("touchend", off, { passive: false });
-      el.addEventListener("mousedown", on);
-      el.addEventListener("mouseup", off);
-      el.addEventListener("mouseleave", off);
-    }
-    bindTouch("ctrl-left", "left");
-    bindTouch("ctrl-right", "right");
-    bindTouch("ctrl-gas", "forward");
-    bindTouch("ctrl-brake", "backward");
-
-    // Local Entities
-    const localEntity = { x: 440, y: 415, angle: 0, speed: 0, lap: 1, passedHalf: false, alive: true };
-    let localPaddleY = 210;
-
-    // CREATE ROOM
-    document.getElementById("btn-create-room").onclick = async () => {
-      await ensureAuth();
-      const name = document.getElementById("create-name").value.trim() || "Player 1";
-      const vehicle = document.getElementById("create-vehicle").value;
-      roomCode = randomCode();
-      myRole = "p1";
-
-      localEntity.x = 440;
-      localEntity.y = 415;
-      localEntity.angle = 0;
-      localEntity.speed = 0;
-      localEntity.alive = true;
-
-      const roomRef = ref(db, `arcade_rooms/${roomCode}`);
-      await set(roomRef, {
-        game: selectedGame,
-        status: "waiting",
-        winner: null,
-        p1: { name, type: vehicle, x: 440, y: 415, angle: 0, speed: 0, lap: 1, paddleY: 210, score: 0, alive: true },
-        p2: null,
-        pongBall: { x: 440, y: 260, vx: 6, vy: 3 },
-        ttt: { board: ["","","","","","","","",""], turn: "X", winner: null }
-      });
-
-      secCreate.classList.add("hidden");
-      secWait.classList.remove("hidden");
-      displayCode.textContent = roomCode;
-
-      listenToRoom(roomCode);
-    };
-
-    // JOIN ROOM
-    document.getElementById("btn-join-room").onclick = async () => {
-      await ensureAuth();
-      const code = document.getElementById("join-code").value.trim().toUpperCase();
-      const name = document.getElementById("join-name").value.trim() || "Player 2";
-      const vehicle = document.getElementById("join-vehicle").value;
-
-      if (code.length !== 4) return alert("Enter 4-letter room code");
-
-      const roomRef = ref(db, `arcade_rooms/${code}`);
-      const snap = await get(roomRef);
-      if (!snap.exists()) return alert("Room not found!");
-
-      const data = snap.val();
-      if (data.p2) return alert("Room is already full!");
-
-      roomCode = code;
-      myRole = "p2";
-      selectedGame = data.game;
-
-      localEntity.x = 440;
-      localEntity.y = 445;
-      localEntity.angle = 0;
-      localEntity.speed = 0;
-      localEntity.alive = true;
-
-      await update(roomRef, {
-        status: "playing",
-        p2: { name, type: vehicle, x: 440, y: 445, angle: 0, speed: 0, lap: 1, paddleY: 210, score: 0, alive: true }
-      });
-
-      listenToRoom(roomCode);
-    };
-
-    function listenToRoom(code) {
-      const roomRef = ref(db, `arcade_rooms/${code}`);
-      onDisconnect(ref(db, `arcade_rooms/${code}/${myRole}/connected`)).set(false);
-
-      onValue(roomRef, (snap) => {
-        const data = snap.val();
-        if (!data) return;
-        currentRoom = data;
-
-        if (data.status === "playing" && gameArena.style.display !== "flex") {
-          lobbyPanel.classList.add("hidden");
-          gameArena.style.display = "flex";
-          hudName.textContent = data[myRole].name;
-          hudRoom.textContent = code;
-
-          if (selectedGame === "ttt") {
-            canvas.style.display = "none";
-            tttBox.style.display = "block";
-            touchControls.style.display = "none";
-            hudStat1.style.display = "none";
-            hudStat2.style.display = "none";
-          } else {
-            canvas.style.display = "block";
-            tttBox.style.display = "none";
-            touchControls.style.display = "flex";
-            hudStat1.style.display = selectedGame === "pong" ? "none" : "block";
-            hudStat2.style.display = selectedGame === "racer" ? "block" : "none";
-          }
-        }
-
-        if (data.status === "ended") {
-          btnRematch.classList.remove("hidden");
-        }
-
-        if (selectedGame === "ttt") updateTTT(data.ttt);
-      });
-    }
-
-    // Rematch Reset
-    btnRematch.onclick = async () => {
-      const roomRef = ref(db, `arcade_rooms/${roomCode}`);
-      localEntity.x = 440;
-      localEntity.y = myRole === "p1" ? 415 : 445;
-      localEntity.speed = 0; localEntity.angle = 0; localEntity.lap = 1; localEntity.alive = true;
-
-      await update(roomRef, {
-        status: "playing",
-        winner: null,
-        "p1/x": 440, "p1/y": 415, "p1/speed": 0, "p1/angle": 0, "p1/lap": 1, "p1/score": 0, "p1/alive": true,
-        "p2/x": 440, "p2/y": 445, "p2/speed": 0, "p2/angle": 0, "p2/lap": 1, "p2/score": 0, "p2/alive": true,
-        "pongBall": { x: 440, y: 260, vx: 6, vy: 3 },
-        "ttt": { board: ["","","","","","","","",""], turn: "X", winner: null }
-      });
-      btnRematch.classList.add("hidden");
-    };
-
-    // Physics Engine
-    let lastSync = 0;
-
-    function updateGamePhysics() {
-      if (!currentRoom || currentRoom.status !== "playing") return;
-
-      // 1. RACER & DERBY PHYSICS
-      if (selectedGame === "racer" || selectedGame === "derby") {
-        if (!localEntity.alive) return;
-        const spec = currentRoom[myRole]?.type === "bike" 
-          ? { accel: 0.16, max: 4.4, turn: 0.065, friction: 0.97 }
-          : { accel: 0.12, max: 4.8, turn: 0.045, friction: 0.98 };
-
-        if (keys.forward) localEntity.speed += spec.accel;
-        if (keys.backward) localEntity.speed -= spec.accel * 0.7;
-        localEntity.speed *= spec.friction;
-        localEntity.speed = Math.max(-spec.max * 0.4, Math.min(spec.max, localEntity.speed));
-
-        if (Math.abs(localEntity.speed) > 0.1) {
-          const dir = localDriverDir();
-          if (keys.left) localEntity.angle -= spec.turn * dir;
-          if (keys.right) localEntity.angle += spec.turn * dir;
-        }
-
-        localEntity.x += Math.cos(localEntity.angle) * localEntity.speed;
-        localEntity.y += Math.sin(localEntity.angle) * localEntity.speed;
-
-        // Circuit Lap Logic
-        if (selectedGame === "racer") {
-          if (localEntity.x < 200) localEntity.passedHalf = true;
-          if (localEntity.passedHalf && localEntity.x >= 440 && localEntity.y > 380) {
-            localEntity.passedHalf = false;
-            localEntity.lap += 1;
-            document.getElementById("hud-lap").textContent = `${Math.min(localEntity.lap, 3)}/3`;
-            if (localEntity.lap > 3) {
-              update(ref(db, `arcade_rooms/${roomCode}`), { status: "ended", winner: currentRoom[myRole].name });
-            }
-          }
-        }
-
-        // Derby Ring-out Logic
-        if (selectedGame === "derby") {
-          const dist = Math.hypot(localEntity.x - canvas.width / 2, localEntity.y - canvas.height / 2);
-          if (dist > 220) {
-            localEntity.alive = false;
-            update(ref(db, `arcade_rooms/${roomCode}/${myRole}/alive`), false);
-            const oppRole = myRole === "p1" ? "p2" : "p1";
-            update(ref(db, `arcade_rooms/${roomCode}`), { status: "ended", winner: currentRoom[oppRole]?.name || "Opponent" });
-          }
-        }
-
-        document.getElementById("hud-speed").textContent = Math.round(Math.abs(localEntity.speed) * 28);
-      }
-
-      // 2. PONG PHYSICS
-      if (selectedGame === "pong") {
-        if (keys.forward || keys.left) localPaddleY -= 7;
-        if (keys.backward || keys.right) localPaddleY += 7;
-        localPaddleY = Math.max(10, Math.min(canvas.height - 90, localPaddleY));
-
-        if (myRole === "p1" && currentRoom.pongBall) {
-          const ball = { ...currentRoom.pongBall };
-          ball.x += ball.vx;
-          ball.y += ball.vy;
-
-          if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
-
-          if (ball.x <= 40 && ball.y >= localPaddleY && ball.y <= localPaddleY + 80) ball.vx = Math.abs(ball.vx);
-          const p2Y = currentRoom.p2?.paddleY || 210;
-          if (ball.x >= canvas.width - 40 && ball.y >= p2Y && ball.y <= p2Y + 80) ball.vx = -Math.abs(ball.vx);
-
-          if (ball.x < 0) {
-            update(ref(db, `arcade_rooms/${roomCode}/p2/score`), (currentRoom.p2?.score || 0) + 1);
-            ball.x = 440; ball.y = 260; ball.vx = 6;
-          } else if (ball.x > canvas.width) {
-            update(ref(db, `arcade_rooms/${roomCode}/p1/score`), (currentRoom.p1?.score || 0) + 1);
-            ball.x = 440; ball.y = 260; ball.vx = -6;
-          }
-
-          update(ref(db, `arcade_rooms/${roomCode}/pongBall`), ball);
-        }
-      }
-
-      // Throttle network sync (every 45ms)
-      const now = performance.now();
-      if (now - lastSync > 45 && roomCode) {
-        lastSync = now;
-        if (selectedGame === "racer" || selectedGame === "derby") {
-          update(ref(db, `arcade_rooms/${roomCode}/${myRole}`), {
-            x: localEntity.x, y: localEntity.y, angle: localEntity.angle, speed: localEntity.speed, lap: localEntity.lap, alive: localEntity.alive
-          });
-        } else if (selectedGame === "pong") {
-          update(ref(db, `arcade_rooms/${roomCode}/${myRole}/paddleY`), localPaddleY);
-        }
-      }
-    }
-
-    function localDriverDir() {
-      return localEntity.speed > 0 ? 1 : -1;
-    }
-
-    // Rendering Loop
-    function draw() {
-      if (selectedGame === "ttt") return;
-
-      ctx.fillStyle = "#090d16";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      if (selectedGame === "racer") {
-        ctx.fillStyle = "#15803d";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#1e293b";
-        ctx.beginPath(); ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 100, 140); ctx.fill();
-        ctx.fillStyle = "#15803d";
-        ctx.beginPath(); ctx.roundRect(190, 160, canvas.width - 380, canvas.height - 320, 80); ctx.fill();
-
-        for (let r = 0; r < 5; r++) {
-          for (let c = 0; c < 2; c++) {
-            ctx.fillStyle = (r + c) % 2 === 0 ? "#fff" : "#000";
-            ctx.fillRect(440 + c * 10, 360 + r * 16, 10, 16);
-          }
-        }
-
-        const opp = myRole === "p1" ? currentRoom.p2 : currentRoom.p1;
-        if (opp) drawVehicle(opp.x, opp.y, opp.angle, opp.type, opp.name, myRole === "p1" ? "#ef4444" : "#38bdf8");
-        drawVehicle(localEntity.x, localEntity.y, localEntity.angle, currentRoom[myRole]?.type || "car", `${currentRoom[myRole]?.name} (You)`, myRole === "p1" ? "#38bdf8" : "#ef4444");
-      } 
-      else if (selectedGame === "derby") {
-        ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
-        ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, 230, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = "#1e293b";
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, 220, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        const opp = myRole === "p1" ? currentRoom.p2 : currentRoom.p1;
-        if (opp && opp.alive !== false) drawVehicle(opp.x, opp.y, opp.angle, opp.type, opp.name, myRole === "p1" ? "#ef4444" : "#38bdf8");
-        if (localEntity.alive) drawVehicle(localEntity.x, localEntity.y, localEntity.angle, currentRoom[myRole]?.type || "car", `${currentRoom[myRole]?.name} (You)`, myRole === "p1" ? "#38bdf8" : "#ef4444");
-      }
-      else if (selectedGame === "pong") {
-        ctx.strokeStyle = "rgba(255,255,255,0.2)";
-        ctx.setLineDash([10, 10]);
-        ctx.beginPath(); ctx.moveTo(440, 0); ctx.lineTo(440, 520); ctx.stroke();
-        ctx.setLineDash([]);
-
-        const p1Y = myRole === "p1" ? localPaddleY : (currentRoom.p1?.paddleY || 210);
-        const p2Y = myRole === "p2" ? localPaddleY : (currentRoom.p2?.paddleY || 210);
-        ctx.fillStyle = "#38bdf8"; ctx.fillRect(20, p1Y, 14, 80);
-        ctx.fillStyle = "#ef4444"; ctx.fillRect(canvas.width - 34, p2Y, 14, 80);
-
-        ctx.font = "bold 42px system-ui";
-        ctx.fillStyle = "rgba(255,255,255,0.4)";
-        ctx.textAlign = "center";
-        ctx.fillText(currentRoom.p1?.score || 0, 380, 70);
-        ctx.fillText(currentRoom.p2?.score || 0, 500, 70);
-
-        if (currentRoom.pongBall) {
-          ctx.fillStyle = "#facc15";
-          ctx.beginPath(); ctx.arc(currentRoom.pongBall.x, currentRoom.pongBall.y, 9, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-
-      // Winner Banner
-      if (currentRoom && currentRoom.status === "ended") {
-        ctx.fillStyle = "rgba(9, 13, 22, 0.88)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#facc15";
-        ctx.font = "bold 36px system-ui";
-        ctx.textAlign = "center";
-        ctx.fillText(`🏆 ${currentRoom.winner} WINS!`, canvas.width / 2, canvas.height / 2 - 10);
-      }
-    }
-
-    function drawVehicle(x, y, angle, type, label, color) {
-      ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
-      if (type === "car") {
-        ctx.fillStyle = color;
-        ctx.beginPath(); ctx.roundRect(-16, -9, 32, 18, 4); ctx.fill();
-        ctx.fillStyle = "#090d16"; ctx.fillRect(-2, -7, 10, 14);
-      } else {
-        ctx.fillStyle = color; ctx.fillRect(-12, -3, 24, 6);
-        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.restore();
-      ctx.fillStyle = "#fff"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
-      ctx.fillText(label, x, y - 18);
-    }
-
-    // Tic Tac Toe
-    const tttCells = document.querySelectorAll(".ttt-cell");
-    const tttTurnLabel = document.getElementById("ttt-turn");
-
-    function updateTTT(ttt) {
-      if (!ttt) return;
-      ttt.board.forEach((v, i) => { tttCells[i].textContent = v; });
-      const mySymbol = myRole === "p1" ? "X" : "O";
-      if (ttt.winner) {
-        tttTurnLabel.textContent = ttt.winner === "draw" ? "Match Draw!" : (ttt.winner === mySymbol ? "You Won! 🎉" : "Opponent Won!");
-        btnRematch.classList.remove("hidden");
-      } else {
-        tttTurnLabel.textContent = ttt.turn === mySymbol ? "Your Turn!" : "Opponent's Turn...";
-      }
-    }
-
-    tttCells.forEach(cell => {
-      cell.onclick = async () => {
-        if (!currentRoom || selectedGame !== "ttt") return;
-        const idx = parseInt(cell.dataset.idx);
-        const mySymbol = myRole === "p1" ? "X" : "O";
-        const tttRef = ref(db, `arcade_rooms/${roomCode}/ttt`);
-
-        await runTransaction(tttRef, (t) => {
-          if (!t || t.winner || t.turn !== mySymbol || t.board[idx] !== "") return t;
-          t.board[idx] = mySymbol;
-          const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-          for (let [a,b,c] of wins) {
-            if (t.board[a] && t.board[a] === t.board[b] && t.board[a] === t.board[c]) {
-              t.winner = mySymbol; return t;
-            }
-          }
-          if (!t.board.includes("")) t.winner = "draw";
-          else t.turn = mySymbol === "X" ? "O" : "X";
-          return t;
-        });
-      };
-    });
-
-    function mainLoop() {
-      updateGamePhysics();
-      draw();
-      requestAnimationFrame(mainLoop);
-    }
-    mainLoop();
-  </script>
+  <div id="gameScreen" class="game-screen hidden">
+    <div class="game-top-bar">
+      <button id="btnLeaveGame" class="btn-leave">← Back to Menu</button>
+      <div id="roomStatusDisplay" class="room-status">Mode: Solo</div>
+      <div id="scoreboard" class="scoreboard">Score: 0</div>
+    </div>
+
+    <div id="canvasWrapper" class="canvas-wrapper">
+      <canvas id="gameCanvas" width="400" height="600"></canvas>
+      
+      <div id="tttBoard" class="ttt-grid hidden">
+        <div class="cell" data-idx="0"></div>
+        <div class="cell" data-idx="1"></div>
+        <div class="cell" data-idx="2"></div>
+        <div class="cell" data-idx="3"></div>
+        <div class="cell" data-idx="4"></div>
+        <div class="cell" data-idx="5"></div>
+        <div class="cell" data-idx="6"></div>
+        <div class="cell" data-idx="7"></div>
+        <div class="cell" data-idx="8"></div>
+      </div>
+    </div>
+
+    <div id="mobileControls" class="mobile-controls">
+      <button id="btnLeft" class="touch-btn">◀ Left</button>
+      <button id="btnAction" class="touch-btn action-btn">⚡ Action</button>
+      <button id="btnRight" class="touch-btn">Right ▶</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #689f38; /* Signature 2-player games green */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.top-bar {
+  background-color: #558b2f;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand-title {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.creator-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+
+.creator-badge:hover {
+  transform: scale(1.05);
+}
+
+.insta-handle {
+  font-size: 0.65rem;
+  opacity: 0.9;
+}
+
+/* Lobby & Room Header */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  width: 100%;
+}
+
+.room-panel {
+  background: #7cb342;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.room-input-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.room-input-group input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  width: 180px;
+}
+
+.btn-action {
+  background: #ffb300;
+  color: #2e3d00;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.room-hint {
+  font-size: 0.8rem;
+  color: #f1f8e9;
+}
+
+/* Grid View */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .game-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.game-card {
+  background: #8bc34a;
+  border-radius: 14px;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.12);
+  transition: transform 0.15s ease, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  background: #9ccc65;
+}
+
+.game-thumbnail {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #33691e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-title {
+  margin-top: 8px;
+  color: #1b3803;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.coming-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #e53935;
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal-card {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-primary, .btn-accent, .btn-secondary, .btn-close {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary { background: #43a047; color: white; }
+.btn-accent { background: #fb8c00; color: white; }
+.join-box { display: flex; gap: 6px; }
+.join-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; text-align: center; }
+.btn-secondary { background: #1e88e5; color: white; }
+.btn-close { background: #eee; color: #555; }
+
+/* In Game Screen */
+.game-screen {
+  position: fixed;
+  inset: 0;
+  background: #212121;
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+}
+
+.game-top-bar {
+  background: #111;
+  color: white;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-leave {
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: #1b1b1b;
+}
+
+#gameCanvas {
+  background: #000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Tic Tac Toe Grid */
+.ttt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 90px);
+  grid-template-rows: repeat(3, 90px);
+  gap: 8px;
+  background: #333;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.cell {
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+/* Mobile Controls */
+.mobile-controls {
+  background: #111;
+  padding: 12px;
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.touch-btn {
+  flex: 1;
+  background: #37474f;
+  color: #fff;
+  border: 2px solid #546e7a;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.action-btn {
+  background: #f4511e;
+  border-color: #ff7043;
+}
+
+.touch-btn:active {
+  background: #78909c;
+}
+
+.hidden {
+  display: none !important;
+}
+// --- Firebase Config Integrated with your project keys ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBzLchy5M2fLne4c7Ghw1KNN8wVrlZdd8M",
+  authDomain: "friendsgame-872f5.firebaseapp.com",
+  databaseURL: "https://friendsgame-872f5-default-rtdb.firebaseio.com",
+  projectId: "friendsgame-872f5",
+  storageBucket: "friendsgame-872f5.firebasestorage.app",
+  messagingSenderId: "522534013233",
+  appId: "1:522534013233:web:f5faa6e6795023d0420810",
+  measurementId: "G-PW5H3G97QR"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// --- Sound Synthesizer for Magic Tiles (No external assets required) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTileTone(freq) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.4);
+}
+
+// --- Catalog Definition ---
+const gamesList = [
+  { id: "car-rush", title: "Car Rush 2D", emoji: "🏎️", playable: true, type: "canvas" },
+  { id: "bike-duel", title: "Highway Bike", emoji: "🏍️", playable: true, type: "canvas" },
+  { id: "tic-tac-toe", title: "Tic Tac Toe", emoji: "❌⭕", playable: true, type: "ttt" },
+  { id: "magic-tiles", title: "Magic Tiles 3", emoji: "🎹", playable: true, type: "canvas" },
+  { id: "subway-surfers", title: "Subway Surfers", emoji: "🏃‍♂️", playable: false },
+  { id: "fire-water", title: "Fire and Water", emoji: "🔥💧", playable: false },
+  { id: "basket-random", title: "Basket Random", emoji: "🏀", playable: false },
+  { id: "boxing-random", title: "Boxing Random", emoji: "🥊", playable: false }
+];
+
+// --- Application State ---
+let activeGame = null;
+let currentMode = "bot"; // "bot" or "room"
+let currentRoomCode = null;
+let isHost = false;
+let animationFrameId = null;
+
+// --- Initialize Lobby Grid ---
+const grid = document.getElementById("gameGrid");
+gamesList.forEach(game => {
+  const card = document.createElement("div");
+  card.className = "game-card";
+  card.innerHTML = `
+    <div class="game-thumbnail">
+      ${game.emoji}
+      ${!game.playable ? '<span class="coming-badge">SOON</span>' : ''}
+    </div>
+    <div class="game-title">${game.title}</div>
+  `;
+  card.onclick = () => openGameSelection(game);
+  grid.appendChild(card);
+});
+
+// --- Modal Controls ---
+const modeModal = document.getElementById("modeModal");
+function openGameSelection(game) {
+  if (!game.playable) {
+    alert(`${game.title} is coming soon! Stay tuned.`);
+    return;
+  }
+  activeGame = game;
+  document.getElementById("modalGameTitle").innerText = game.title;
+  modeModal.classList.remove("hidden");
+}
+
+document.getElementById("btnCloseModal").onclick = () => modeModal.classList.add("hidden");
+
+document.getElementById("btnPlayBot").onclick = () => {
+  currentMode = "bot";
+  modeModal.classList.add("hidden");
+  startGameEngine();
+};
+
+document.getElementById("btnCreateRoom").onclick = () => {
+  currentMode = "room";
+  isHost = true;
+  currentRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+  setupRoomSync(currentRoomCode);
+  modeModal.classList.add("hidden");
+  startGameEngine();
+};
+
+document.getElementById("btnJoinRoom").onclick = () => {
+  const code = document.getElementById("modalRoomCode").value.trim();
+  if (code.length < 4) return alert("Enter a valid 4-digit code");
+  joinExistingRoom(code);
+};
+
+document.getElementById("btnJoinCode").onclick = () => {
+  const code = document.getElementById("directRoomInput").value.trim();
+  if (code.length < 4) return alert("Enter code");
+  activeGame = gamesList[0];
+  joinExistingRoom(code);
+};
+
+function joinExistingRoom(code) {
+  currentMode = "room";
+  isHost = false;
+  currentRoomCode = code;
+  setupRoomSync(code);
+  modeModal.classList.add("hidden");
+  startGameEngine();
+}
+
+// --- Multiplayer Room Synchronization ---
+function setupRoomSync(code) {
+  const roomRef = db.ref("rooms/" + code);
+  if (isHost) {
+    roomRef.set({
+      gameId: activeGame.id,
+      hostX: 180,
+      guestX: 180,
+      hostScore: 0,
+      guestScore: 0,
+      board: ["","","","","","","","",""],
+      turn: "X"
+    });
+    alert(`Room Created! Share this Room Code with your friend: ${code}`);
+  }
+
+  roomRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    if (activeGame.type === "ttt" && data.board) {
+      renderTTTBoard(data.board);
+    }
+    if (activeGame.type === "canvas" && window.syncMultiplayerData) {
+      window.syncMultiplayerData(data);
+    }
+  });
+}
+
+// --- Screen Switching & Exit ---
+const gameScreen = document.getElementById("gameScreen");
+const lobbyView = document.getElementById("lobbyView");
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const tttBoard = document.getElementById("tttBoard");
+
+document.getElementById("btnLeaveGame").onclick = () => {
+  cancelAnimationFrame(animationFrameId);
+  if (currentRoomCode) {
+    db.ref("rooms/" + currentRoomCode).off();
+  }
+  gameScreen.classList.add("hidden");
+  lobbyView.classList.remove("hidden");
+  tttBoard.classList.add("hidden");
+  canvas.classList.remove("hidden");
+};
+
+function startGameEngine() {
+  lobbyView.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+  document.getElementById("roomStatusDisplay").innerText = 
+    currentMode === "bot" ? "Mode: AI Bot" : `Room: ${currentRoomCode} (${isHost ? "Host" : "Guest"})`;
+
+  if (activeGame.type === "ttt") {
+    canvas.classList.add("hidden");
+    tttBoard.classList.remove("hidden");
+    initTicTacToe();
+  } else {
+    canvas.classList.remove("hidden");
+    tttBoard.classList.add("hidden");
+    if (activeGame.id === "car-rush" || activeGame.id === "bike-duel") {
+      runVehicleGame(activeGame.id === "car-rush" ? "car" : "bike");
+    } else if (activeGame.id === "magic-tiles") {
+      runMagicTiles();
+    }
+  }
+}
+
+// --- Game Engine: Car & Bike Racing ---
+function runVehicleGame(vehicleType) {
+  let playerX = 180;
+  let opponentX = 180;
+  let opponentY = -100;
+  let score = 0;
+  const speed = vehicleType === "car" ? 6 : 8;
+
+  let leftPressed = false;
+  let rightPressed = false;
+
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowLeft" || e.key === "a") leftPressed = true;
+    if (e.key === "ArrowRight" || e.key === "d") rightPressed = true;
+  };
+  const handleKeyUp = (e) => {
+    if (e.key === "ArrowLeft" || e.key === "a") leftPressed = false;
+    if (e.key === "ArrowRight" || e.key === "d") rightPressed = false;
+  };
+  window.onkeydown = handleKeyDown;
+  window.onkeyup = handleKeyUp;
+
+  const bLeft = document.getElementById("btnLeft");
+  const bRight = document.getElementById("btnRight");
+  bLeft.ontouchstart = () => leftPressed = true;
+  bLeft.ontouchend = () => leftPressed = false;
+  bRight.ontouchstart = () => rightPressed = true;
+  bRight.ontouchend = () => rightPressed = false;
+
+  window.syncMultiplayerData = (data) => {
+    if (isHost) {
+      opponentX = data.guestX || 180;
+    } else {
+      opponentX = data.hostX || 180;
+    }
+  };
+
+  function update() {
+    if (leftPressed && playerX > 40) playerX -= 5;
+    if (rightPressed && playerX < 320) playerX += 5;
+
+    if (currentMode === "bot") {
+      opponentY += speed;
+      if (opponentY > 600) {
+        opponentY = -100;
+        opponentX = 60 + Math.random() * 240;
+        score += 10;
+        document.getElementById("scoreboard").innerText = `Score: ${score}`;
+      }
+      if (Math.abs(playerX - opponentX) < 35 && opponentY > 460 && opponentY < 540) {
+        alert("Crash! Game Over.");
+        playerX = 180;
+        opponentY = -100;
+        score = 0;
+      }
+    } else {
+      const updatePayload = isHost ? { hostX: playerX } : { guestX: playerX };
+      db.ref("rooms/" + currentRoomCode).update(updatePayload);
+    }
+
+    ctx.fillStyle = "#333";
+    ctx.fillRect(0, 0, 400, 600);
+
+    ctx.strokeStyle = "#fff";
+    ctx.setLineDash([20, 20]);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(200, 0);
+    ctx.lineTo(200, 600);
+    ctx.stroke();
+
+    ctx.fillStyle = vehicleType === "car" ? "#00e676" : "#00b0ff";
+    ctx.fillRect(playerX, 480, 40, vehicleType === "car" ? 60 : 40);
+
+    ctx.fillStyle = "#ff1744";
+    ctx.fillRect(opponentX, currentMode === "bot" ? opponentY : 100, 40, vehicleType === "car" ? 60 : 40);
+
+    animationFrameId = requestAnimationFrame(update);
+  }
+  update();
+}
+
+// --- Game Engine: Magic Tiles 3 ---
+function runMagicTiles() {
+  const notes = [261.63, 329.63, 392.00, 523.25];
+  let tiles = [];
+  let score = 0;
+  let speed = 4;
+
+  function spawnRow() {
+    const lane = Math.floor(Math.random() * 4);
+    tiles.push({ lane, y: -100, clicked: false });
+  }
+
+  canvas.onpointerdown = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = ((e.clientX - rect.left) / rect.width) * 400;
+    const clickY = ((e.clientY - rect.top) / rect.height) * 600;
+    const laneClicked = Math.floor(clickX / 100);
+
+    tiles.forEach(tile => {
+      if (!tile.clicked && tile.lane === laneClicked && clickY >= tile.y && clickY <= tile.y + 120) {
+        tile.clicked = true;
+        score += 1;
+        playTileTone(notes[laneClicked]);
+        document.getElementById("scoreboard").innerText = `Score: ${score}`;
+      }
+    });
+  };
+
+  let tick = 0;
+  function update() {
+    tick++;
+    if (tick % 45 === 0) spawnRow();
+
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, 400, 600);
+
+    ctx.strokeStyle = "#444";
+    ctx.setLineDash([]);
+    for (let i = 1; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 100, 0);
+      ctx.lineTo(i * 100, 600);
+      ctx.stroke();
+    }
+
+    for (let i = tiles.length - 1; i >= 0; i--) {
+      const t = tiles[i];
+      t.y += speed;
+
+      ctx.fillStyle = t.clicked ? "#555" : "#00e5ff";
+      ctx.fillRect(t.lane * 100 + 4, t.y, 92, 120);
+
+      if (t.y > 600) {
+        if (!t.clicked) {
+          alert(`Game Over! Score: ${score}`);
+          tiles = [];
+          score = 0;
+          break;
+        }
+        tiles.splice(i, 1);
+      }
+    }
+    animationFrameId = requestAnimationFrame(update);
+  }
+  update();
+}
+
+// --- Game Engine: Tic Tac Toe ---
+function initTicTacToe() {
+  let localBoard = ["","","","","","","","",""];
+  const cells = document.querySelectorAll(".cell");
+
+  cells.forEach(cell => {
+    cell.onclick = () => {
+      const idx = cell.getAttribute("data-idx");
+      if (localBoard[idx] !== "") return;
+
+      if (currentMode === "bot") {
+        localBoard[idx] = "X";
+        renderTTTBoard(localBoard);
+        if (!checkWin(localBoard, "X")) {
+          setTimeout(botMove, 300);
+        }
+      } else {
+        localBoard[idx] = isHost ? "X" : "O";
+        db.ref("rooms/" + currentRoomCode).update({ board: localBoard });
+      }
+    };
+  });
+
+  function botMove() {
+    const emptyIndices = localBoard.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+    if (emptyIndices.length === 0) return;
+    const chosen = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    localBoard[chosen] = "O";
+    renderTTTBoard(localBoard);
+    checkWin(localBoard, "O");
+  }
+}
+
+function renderTTTBoard(board) {
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach((cell, i) => {
+    cell.innerText = board[i];
+    cell.style.color = board[i] === "X" ? "#d32f2f" : "#1976d2";
+  });
+}
+
+function checkWin(b, player) {
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  for (let comb of wins) {
+    if (b[comb[0]] === player && b[comb[1]] === player && b[comb[2]] === player) {
+      setTimeout(() => alert(`Player ${player} wins!`), 10);
+      return true;
+    }
+  }
+  return false;
+}
+      
