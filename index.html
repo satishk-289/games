@@ -1135,6 +1135,8 @@ const football = {
         const me = myRole === "p1" ? p1 : p2;
       if (activeGame === "soccer") football.updatePhysics(keys);
                 if (activeGame === "basket") basketball.updatePhysics(keys);
+                if (activeGame === "devil") levelDevil.updatePhysics(keys);
+        
         
         
         // 1. APEX RACE ENGINE
@@ -1221,6 +1223,7 @@ const football = {
       if (activeGame === "run") renderRunner();
       if (activeGame === "soccer") football.render();
       if (activeGame === "basket") basketball.render();
+      if (activeGame === "devil") levelDevil.render();
       
   
       requestAnimationFrame(loop);
