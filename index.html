@@ -431,23 +431,264 @@
         touchCtrl.style.display = "flex";
         document.getElementById("hud-stat-1").style.display = "block";
         document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
-        if (activeGame === "run") {
+        document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
+        if (activeGame === "soccer") {
           document.getElementById("b-gas").textContent = "JUMP";
+          document.getElementById("b-brake").textContent = "KICK";
+          football.init("gameCanvas", {
+            isSolo: isSolo,
+            myRole: myRole,
+            p1Name: p1.name,
+            p2Name: isSolo ? "AI Bot 🤖" : p2.name,
+            roomCode: roomCode,
+            db: db,
+            ref: ref,
+            update: update
+          });
+        } else if (activeGame === "run") {
+          document.getElementById("b-gas").textContent = "JUMP";
+          document.getElementById("b-brake").textContent = "REV";
           p1.x = 40; p1.y = 200; p2.x = 40; p2.y = 380;
         } else {
           document.getElementById("b-gas").textContent = "GAS";
+          document.getElementById("b-brake").textContent = "REV";
           p1.x = 400; p1.y = 385; p2.x = 400; p2.y = 415;
         }
-      }
+              }
       document.getElementById("hud-name").textContent = myRole === "p1" ? p1.name : p2.name;
     }
+          
 
     btnReplay.onclick = () => {
       p1.lap = 1; p1.pass = false; p1.s = 0; p1.a = 0;
       p2.lap = 1; p2.pass = false; p2.s = 0; p2.a = 0; p2.wp = 0;
       launchArena();
     };
+const football = {
+  canvas: null,
+  ctx: null,
+  p1: { x: 180, y: 350, vx: 0, vy: 0, r: 22, score: 0, onGround: true, name: "Player 1" },
+  p2: { x: 620, y: 350, vx: 0, vy: 0, r: 22, score: 0, onGround: true, name: "AI Bot 🤖" },
+  ball: { x: 400, y: 260, vx: 0, vy: 0, r: 14 },
+  active: false,
+  winner: null,
+  isSolo: true,
+  myRole: "p1",
+  roomCode: null,
+  db: null,
+  ref: null,
+  update: null,
 
+  init(canvasId, options = {}) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    this.isSolo = options.isSolo ?? true;
+    this.myRole = options.myRole || "p1";
+    this.roomCode = options.roomCode || null;
+    this.db = options.db || null;
+    this.ref = options.ref || null;
+    this.update = options.update || null;
+
+    if (options.p1Name) this.p1.name = options.p1Name;
+    if (options.p2Name) this.p2.name = options.p2Name;
+
+    this.resetMatch();
+    this.active = true;
+  },
+
+  resetPositions() {
+    this.p1.x = 180; this.p1.y = 350; this.p1.vx = 0; this.p1.vy = 0;
+    this.p2.x = 620; this.p2.y = 350; this.p2.vx = 0; this.p2.vy = 0;
+    this.ball.x = 400; this.ball.y = 260; this.ball.vx = 0; this.ball.vy = 0;
+  },
+
+  resetMatch() {
+    this.p1.score = 0;
+    this.p2.score = 0;
+    this.winner = null;
+    this.resetPositions();
+  },
+
+  updatePhysics(keys) {
+    if (!this.active || this.winner) return;
+
+    const me = this.myRole === "p1" ? this.p1 : this.p2;
+
+    if (keys.l) me.vx = -4.8;
+    else if (keys.r) me.vx = 4.8;
+    else me.vx *= 0.8;
+
+    if (keys.f && me.onGround) {
+      me.vy = -12.5;
+      me.onGround = false;
+    }
+
+    me.x += me.vx;
+    me.y += me.vy;
+    me.vy += 0.65;
+
+    if (me.y >= 350) { me.y = 350; me.vy = 0; me.onGround = true; }
+    me.x = Math.max(30, Math.min(770, me.x));
+
+    if (this.isSolo) {
+      const dx = this.ball.x - this.p2.x;
+      if (this.ball.x > 350) {
+        if (dx < -10) this.p2.vx = -4.2;
+        else if (dx > 10) this.p2.vx = 4.2;
+        else this.p2.vx = 0;
+
+        if (this.ball.y < 300 && Math.abs(dx) < 40 && this.p2.onGround) {
+          this.p2.vy = -12;
+          this.p2.onGround = false;
+        }
+      } else {
+        if (this.p2.x < 620) this.p2.vx = 3.5;
+        else if (this.p2.x > 660) this.p2.vx = -3.5;
+        else this.p2.vx = 0;
+      }
+
+      this.p2.x += this.p2.vx;
+      this.p2.y += this.p2.vy;
+      this.p2.vy += 0.65;
+      if (this.p2.y >= 350) { this.p2.y = 350; this.p2.vy = 0; this.p2.onGround = true; }
+      this.p2.x = Math.max(400, Math.min(760, this.p2.x));
+    }
+
+    if (this.isSolo || this.myRole === "p1") {
+      this.ball.x += this.ball.vx;
+      this.ball.y += this.ball.vy;
+      this.ball.vy += 0.45;
+      this.ball.vx *= 0.985;
+
+      if (this.ball.y >= 358) {
+        this.ball.y = 358;
+        this.ball.vy = -this.ball.vy * 0.72;
+        this.ball.vx *= 0.95;
+      }
+
+      if (this.ball.y <= 20) {
+        this.ball.y = 20;
+        this.ball.vy = -this.ball.vy;
+      }
+
+      if (this.ball.y < 255 && (this.ball.x <= 70 || this.ball.x >= 730)) {
+        if (this.ball.x <= 70 && this.ball.vx < 0) this.ball.vx = Math.abs(this.ball.vx) * 0.8;
+        if (this.ball.x >= 730 && this.ball.vx > 0) this.ball.vx = -Math.abs(this.ball.vx) * 0.8;
+      }
+
+      [this.p1, this.p2].forEach(p => {
+        const cdx = this.ball.x - p.x;
+        const cdy = this.ball.y - p.y;
+        const dist = Math.hypot(cdx, cdy);
+
+        if (dist < p.r + this.ball.r) {
+          const angle = Math.atan2(cdy, cdx);
+          const power = keys.b ? 12 : 7.5;
+          this.ball.vx = Math.cos(angle) * power + p.vx * 0.5;
+          this.ball.vy = Math.sin(angle) * power - 3;
+        }
+      });
+
+      if (this.ball.x <= 25 && this.ball.y > 250) {
+        this.p2.score++;
+        this.checkWinner();
+        this.resetPositions();
+      }
+      if (this.ball.x >= 775 && this.ball.y > 250) {
+        this.p1.score++;
+        this.checkWinner();
+        this.resetPositions();
+      }
+    }
+  },
+
+  checkWinner() {
+    if (this.p1.score >= 3) this.winner = this.p1.name;
+    else if (this.p2.score >= 3) this.winner = this.p2.name;
+
+    if (this.winner) {
+      document.getElementById("btn-replay").classList.remove("hidden");
+      if (!this.isSolo && this.update && this.ref && this.db && this.roomCode) {
+        this.update(this.ref(this.db, `arcade2p/${this.roomCode}`), { status: "ended", winner: this.winner });
+      }
+    }
+  },
+
+  render() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    ctx.fillStyle = "#15803d";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 370); ctx.stroke();
+    ctx.beginPath(); ctx.arc(400, 260, 60, 0, Math.PI * 2); ctx.stroke();
+
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(0, 370, this.canvas.width, 50);
+
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 5;
+    ctx.strokeRect(0, 250, 65, 120);
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.fillRect(0, 250, 65, 120);
+
+    ctx.strokeRect(735, 250, 65, 120);
+    ctx.fillRect(735, 250, 65, 120);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 20px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(`${this.p1.name} (${this.p1.score})   -   (${this.p2.score}) ${this.p2.name}`, 400, 35);
+
+    this.drawPlayer(this.p1.x, this.p1.y, "#38bdf8", this.p1.name);
+    this.drawPlayer(this.p2.x, this.p2.y, "#ef4444", this.p2.name);
+
+    ctx.save();
+    ctx.translate(this.ball.x, this.ball.y);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(0, 0, this.ball.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#000000";
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    if (this.winner) {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 36px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(`🏆 ${this.winner} WINS!`, this.canvas.width / 2, this.canvas.height / 2);
+    }
+  },
+
+  drawPlayer(x, y, color, label) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(x, y);
+
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath(); ctx.ellipse(0, 16, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(-12, -8, 24, 24, 6); ctx.fill();
+
+    ctx.fillStyle = "#fed7aa";
+    ctx.beginPath(); ctx.arc(0, -18, 14, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(-10, 14, 8, 4);
+    ctx.fillRect(2, 14, 8, 4);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(label, 0, -36);
+    ctx.restore();
+  }
+};
+          
     // Runner Obstacles
     const hurdles = [260, 480, 700];
 
@@ -456,7 +697,8 @@
     function loop() {
       if (running) {
         const me = myRole === "p1" ? p1 : p2;
-
+      if (activeGame === "soccer") football.updatePhysics(keys);
+        
         // 1. APEX RACE ENGINE
         if (activeGame === "race") {
           if (keys.f) me.s += 0.14;
@@ -539,7 +781,8 @@
 
       if (activeGame === "race") renderRace();
       if (activeGame === "run") renderRunner();
-
+      if (activeGame === "soccer") football.render();
+  
       requestAnimationFrame(loop);
     }
 
