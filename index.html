@@ -192,6 +192,10 @@
   <div class="card-thumb th-basket">🏀</div>
   <div class="game-name">Basket Random</div>
       </div>
+      <div class="game-card" id="open-devil">
+  <div class="card-thumb th-devil">😈</div>
+  <div class="game-name">Level Devil</div>
+      </div>
       
       <div class="game-card"><div class="card-thumb th-lock">🥊</div><div class="game-name">Boxing 2P</div></div>
       <div class="game-card"><div class="card-thumb th-lock">🔥</div><div class="game-name">Fire & Water</div></div>
@@ -318,7 +322,7 @@
       document.getElementById("solo-veh").style.display = gameKey === "race" ? "block" : "none";
       document.getElementById("btn-start-solo").textContent = gameKey === "ttt" ? "Play vs Bot" : (gameKey === "run" ? "Start Sprint vs Bot" : "Race vs AI");
     }
-
+    document.getElementById("open-devil").onclick = () => openGame("devil", "Level Devil");
     document.getElementById("open-race").onclick = () => openGame("race", "Apex Race 2P");
     document.getElementById("open-run").onclick  = () => openGame("run", "Speed Runner 2P");
     document.getElementById("open-ttt").onclick  = () => openGame("ttt", "Tic Tac Toe 2P");
