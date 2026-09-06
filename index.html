@@ -182,7 +182,11 @@
       </div>
 
       <!-- Visual Locked Games -->
-      <div class="game-card"><div class="card-thumb th-lock">⚽</div><div class="game-name">Soccer 2P</div></div>
+            <div class="game-card" id="open-soccer">
+        <div class="card-thumb th-soccer">⚽</div>
+        <div class="game-name">Soccer 2P</div>
+            </div>
+      
       <div class="game-card"><div class="card-thumb th-lock">🥊</div><div class="game-name">Boxing 2P</div></div>
       <div class="game-card"><div class="card-thumb th-lock">🏀</div><div class="game-name">Basket Random</div></div>
       <div class="game-card"><div class="card-thumb th-lock">🔥</div><div class="game-name">Fire & Water</div></div>
@@ -313,6 +317,7 @@
     document.getElementById("open-race").onclick = () => openGame("race", "Apex Race 2P");
     document.getElementById("open-run").onclick  = () => openGame("run", "Speed Runner 2P");
     document.getElementById("open-ttt").onclick  = () => openGame("ttt", "Tic Tac Toe 2P");
+    document.getElementById("open-soccer").onclick = () => openGame("soccer", "Soccer Duel 2P");
     document.getElementById("btn-close-pop").onclick = () => pop.classList.add("hidden");
     document.getElementById("btn-exit-arena").onclick = () => location.reload();
 
