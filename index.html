@@ -442,7 +442,7 @@
         document.getElementById("hud-stat-1").style.display = "block";
         document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
         document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
-                if (activeGame === "devil") {
+                        if (activeGame === "devil") {
           document.getElementById("b-gas").textContent = "JUMP";
           document.getElementById("b-brake").textContent = "RESET";
           levelDevil.init("gameCanvas", { p1Name: p1.name });
@@ -463,7 +463,6 @@
           document.getElementById("b-gas").textContent = "JUMP";
           document.getElementById("b-brake").textContent = "KICK";
           football.init("gameCanvas", {
-
             isSolo: isSolo,
             myRole: myRole,
             p1Name: p1.name,
@@ -482,11 +481,8 @@
           document.getElementById("b-brake").textContent = "REV";
           p1.x = 400; p1.y = 385; p2.x = 400; p2.y = 415;
         }
-              }
-      document.getElementById("hud-name").textContent = myRole === "p1" ? p1.name : p2.name;
-    }
-          
 
+        
     btnReplay.onclick = () => {
       p1.lap = 1; p1.pass = false; p1.s = 0; p1.a = 0;
       p2.lap = 1; p2.pass = false; p2.s = 0; p2.a = 0; p2.wp = 0;
