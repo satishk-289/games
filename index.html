@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Arcade Hub - Multiplayer Games</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #131d2e;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #facc15;
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --muted: #64748b;
+    }
+    * { 
+      box-sizing: border-box; 
+      font-family: system-ui, -apple-system, sans-serif; 
+      margin: 0; padding: 0; 
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Top Creator Banner */
+    .creator-banner {
+      width: 100%;
+      background: linear-gradient(90deg, #4f46e5, #ec4899, #f59e0b);
+      color: #ffffff;
+      padding: 0.65rem 1rem;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
+    }
+    .creator-banner:hover { opacity: 0.95; }
+
+    .main-wrapper {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem 1rem;
+    }
+
+    /* Menu / Lobby Cards */
+    .panel {
+      background: var(--panel);
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+    h1 { font-size: 1.8rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 0.2rem; }
+    p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    /* Game Selection Cards */
+    .game-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    .game-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .game-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      background: #1e293b;
+    }
+    .game-card h3 { font-size: 1.05rem; color: #f8fafc; }
+    .game-card p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Matchmaking Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+    .tab {
+      flex: 1;
+      padding: 0.65rem;
+      border-radius: 8px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab.active { background: var(--accent); color: #090d16; border-color: var(--accent); }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0b1120;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 0.85rem;
+    }
+    button.btn-action {
+      background: var(--accent);
+      color: #090d16;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      padding: 0.85rem;
+      transition: opacity 0.2s;
+    }
+    button.btn-action:hover { opacity: 0.9; }
+
+    .code-box {
+      background: #090d16;
+      border: 2px dashed var(--accent);
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: var(--accent);
+      margin: 1rem 0;
+    }
+
+    .player-list-box {
+      background: #090d16;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.85rem 0;
+      text-align: left;
+    }
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 4px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+    .player-row:last-child { border-bottom: none; }
+
+    /* Canvas View */
+    #arena-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+    }
+    .hud-line {
+      width: 100%;
+      max-width: 880px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .hud-line b { color: var(--text); }
+    .canvas-wrapper {
+      width: 100%;
+      max-width: 880px;
+      position: relative;
+    }
+    canvas {
+      border: 2px solid #334155;
+      border-radius: 12px;
+      width: 100%;
+      height: auto;
+      display: block;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    /* Mobile Controls */
+    .mobile-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 880px;
+      margin-top: 0.8rem;
+      padding: 0 0.5rem;
+    }
+    .ctrl-group { display: flex; gap: 12px; }
+    .touch-btn {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.85);
+      border: 2px solid #475569;
+      color: #f8fafc;
+      font-size: 1.4rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .touch-btn:active, .touch-btn.active { background: var(--accent); color: #090d16; }
+    .touch-btn.gas:active, .touch-btn.gas.active { background: var(--green); color: #fff; }
+    .touch-btn.brake:active, .touch-btn.brake.active { background: var(--red); color: #fff; }
+
+    .btn-leave {
+      background: transparent;
+      border: 1px solid #475569;
+      color: var(--muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Instagram Creator Banner -->
+  <a class="creator-banner" href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer">
+    <span>⚡ Created by Satish • Follow on Instagram</span>
+  </a>
+
+  <div class="main-wrapper">
+
+    <!-- 1. MAIN MENU: SELECT GAME -->
+    <div class="panel" id="menu-view">
+      <h1>ARCADE ARENA</h1>
+      <p class="sub">Choose a game to play with 2 to 4 friends</p>
+
+      <div class="game-grid">
+        <div class="game-card" id="card-racing">
+          <div>
+            <h3>🏎️ Apex Circuit</h3>
+            <p>High speed track race with cars & bikes</p>
+          </div>
+          <span class="badge">2–4 Players</span>
+        </div>
+
+        <div class="game-card" id="card-battle">
+          <div>
+            <h3>💥 Neon Battle Arena</h3>
+            <p>Survival bumper derby; bump opponents off the grid</p>
+          </div>
+          <span class="badge">2–4 Players</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. LOBBY: CREATE / JOIN -->
+    <div class="panel hidden" id="lobby-view">
+      <button class="btn-leave" id="btn-back-menu" style="margin-bottom: 0.85rem; width: auto;">← Choose Another Game</button>
+      <h2 id="lobby-game-title" style="color: var(--accent); font-size: 1.4rem; margin-bottom: 0.2rem;">Apex Circuit</h2>
+      <p class="sub">Room Capacity: 2 to 4 Players</p>
+
+      <div class="tabs">
+        <button class="tab active" id="tab-create">Create Match</button>
+        <button class="tab" id="tab-join">Join Match</button>
+      </div>
+
+      <!-- Create Form -->
+      <div id="section-create">
+        <input type="text" id="create-name" placeholder="Your Driver Name" maxlength="12" value="Player 1" />
+        <select id="create-vehicle">
+          <option value="car">🏎️ Sports Car</option>
+          <option value="bike">🏍️ Racing Bike</option>
+        </select>
+        <button class="btn-action" id="btn-create-room">Create Room & Get Code</button>
+      </div>
+
+      <!-- Join Form -->
+      <div id="section-join" class="hidden">
+        <input type="text" id="join-name" placeholder="Your Driver Name" maxlength="12" value="Player 2" />
+        <select id="join-vehicle">
+          <option value="car">🏎️ Sports Car</option>
+          <option value="bike">🏍️ Racing Bike</option>
+        </select>
+        <input type="text" id="join-code" placeholder="Enter 4-Letter Code" maxlength="4" style="text-transform: uppercase;" />
+        <button class="btn-action" id="btn-join-room">Join Match</button>
+      </div>
+
+      <!-- Room Waiting Room (Host & Joiners wait here) -->
+      <div id="section-room-wait" class="hidden">
+        <p style="font-size: 0.85rem; color: var(--muted);">Share this room code with up to 3 friends:</p>
+        <div class="code-box" id="display-room-code">----</div>
+        
+        <div class="player-list-box">
+          <div style="font-weight: 700; font-size: 0.8rem; color: var(--accent); margin-bottom: 4px;">PLAYERS IN LOBBY (<span id="player-count">1</span>/4):</div>
+          <div id="player-rows-container"></div>
+        </div>
+
+        <button class="btn-action" id="btn-start-game">Start Game</button>
+        <p id="wait-msg" style="font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem;">Waiting for host to start...</p>
+      </div>
+    </div>
+
+    <!-- 3. GAME ARENA VIEW -->
+    <div id="arena-container">
+      <div class="hud-line">
+        <span>Driver: <b id="hud-name">-</b></span>
+        <span>Speed: <b id="hud-speed">0</b> km/h</span>
+        <span>Lap: <b id="hud-lap">1/3</b></span>
+        <span>Room: <b id="hud-room">----</b></span>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="880" height="520"></canvas>
+      </div>
+
+      <!-- Mobile On-Screen Controls -->
+      <div class="mobile-controls">
+        <div class="ctrl-group">
+          <div class="touch-btn" id="ctrl-left">◀</div>
+          <div class="touch-btn" id="ctrl-right">▶</div>
+        </div>
+        <div class="ctrl-group">
+          <div class="touch-btn brake" id="ctrl-brake">REV</div>
+          <div class="touch-btn gas" id="ctrl-gas">GAS</div>
+        </div>
+      </div>
+
+      <button id="btn-rematch" class="btn-action hidden" style="margin-top: 12px; max-width: 220px;">Play Again</button>
+      <button class="btn-leave" id="btn-exit-to-menu">Exit to Main Menu</button>
+    </div>
+
+  </div>
+
+  <!-- Firebase Modular Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getDatabase, ref, set, get, update, onValue, onDisconnect, runTransaction 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzLchy5M2fLne4c7Ghw1KNN8wVrlZdd8M",
+      authDomain: "friendsgame-872f5.firebaseapp.com",
+      databaseURL: "https://friendsgame-872f5-default-rtdb.firebaseio.com",
+      projectId: "friendsgame-872f5",
+      storageBucket: "friendsgame-872f5.firebasestorage.app",
+      messagingSenderId: "522534013233",
+      appId: "1:522534013233:web:f5faa6e6795023d0420810",
+      measurementId: "G-PW5H3G97QR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let myUid = null;
+    let selectedGameType = "racing";
+    let roomCode = null;
+    let mySlot = null; // 'p1', 'p2', 'p3', 'p4'
+    let currentRoom = null;
+
+    signInAnonymously(auth).then(cred => { myUid = cred.user.uid; });
+
+    // UI DOM Elements
+    const menuView = document.getElementById("menu-view");
+    const lobbyView = document.getElementById("lobby-view");
+    const arenaContainer = document.getElementById("arena-container");
+    const lobbyTitle = document.getElementById("lobby-game-title");
+    const btnBackMenu = document.getElementById("btn-back-menu");
+    const btnExitToMenu = document.getElementById("btn-exit-to-menu");
+
+    const tabCreate = document.getElementById("tab-create");
+    const tabJoin = document.getElementById("tab-join");
+    const secCreate = document.getElementById("section-create");
+    const secJoin = document.getElementById("section-join");
+    const secWait = document.getElementById("section-room-wait");
+    const displayCode = document.getElementById("display-room-code");
+    const playerRows = document.getElementById("player-rows-container");
+    const playerCount = document.getElementById("player-count");
+    const btnStart = document.getElementById("btn-start-game");
+    const waitMsg = document.getElementById("wait-msg");
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const btnRematch = document.getElementById("btn-rematch");
+
+    // Game Selection Handlers
+    document.getElementById("card-racing").onclick = () => openLobby("racing", "Apex Circuit (Racing)");
+    document.getElementById("card-battle").onclick = () => openLobby("battle", "Neon Battle Arena");
+
+    function openLobby(type, title) {
+      selectedGameType = type;
+      lobbyTitle.textContent = title;
+      menuView.classList.add("hidden");
+      lobbyView.classList.remove("hidden");
+    }
+
+    btnBackMenu.onclick = () => {
+      lobbyView.classList.add("hidden");
+      menuView.classList.remove("hidden");
+    };
+
+    btnExitToMenu.onclick = () => {
+      location.reload();
+    };
+
+    // Tabs
+    tabCreate.onclick = () => {
+      tabCreate.classList.add("active"); tabJoin.classList.remove("active");
+      secCreate.classList.remove("hidden"); secJoin.classList.add("hidden");
+    };
+    tabJoin.onclick = () => {
+      tabJoin.classList.add("active"); tabCreate.classList.remove("active");
+      secJoin.classList.remove("hidden"); secCreate.classList.add("hidden");
+    };
+
+    function generateCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let res = "";
+      for (let i = 0; i < 4; i++) res += chars[Math.floor(Math.random() * chars.length)];
+      return res;
+    }
+
+    const PLAYER_COLORS = {
+      p1: "#38bdf8", // Blue
+      p2: "#ef4444", // Red
+      p3: "#22c55e", // Green
+      p4: "#facc15"  // Yellow
+    };
+
+    const START_POSITIONS = {
+      p1: { x: 440, y: 410 },
+      p2: { x: 440, y: 435 },
+      p3: { x: 400, y: 410 },
+      p4: { x: 400, y: 435 }
+    };
+
+    const SPECS = {
+      car: { accel: 0.12, maxSpeed: 4.8, turnSpeed: 0.045, friction: 0.98 },
+      bike: { accel: 0.16, maxSpeed: 4.4, turnSpeed: 0.065, friction: 0.97 }
+    };
+
+    const localDriver = { x: 440, y: 410, angle: 0, speed: 0, lap: 1, passedHalf: false, alive: true };
+    const keys = { forward: false, backward: false, left: false, right: false };
+
+    // Matchmaking: Create Room (Host is P1)
+    document.getElementById("btn-create-room").onclick = async () => {
+      if (!myUid) return alert("Connecting to server...");
+      const name = document.getElementById("create-name").value.trim() || "Player 1";
+      const vehicle = document.getElementById("create-vehicle").value;
+      roomCode = generateCode();
+      mySlot = "p1";
+
+      localDriver.x = START_POSITIONS.p1.x;
+      localDriver.y = START_POSITIONS.p1.y;
+
+      const roomRef = ref(db, `arcade_v2/${roomCode}`);
+      await set(roomRef, {
+        gameType: selectedGameType,
+        status: "waiting",
+        host: myUid,
+        winner: null,
+        players: {
+          p1: { uid: myUid, name, type: vehicle, x: localDriver.x, y: localDriver.y, angle: 0, speed: 0, lap: 1, alive: true }
+        }
+      });
+
+      secCreate.classList.add("hidden");
+      tabCreate.parentElement.classList.add("hidden");
+      secWait.classList.remove("hidden");
+      displayCode.textContent = roomCode;
+      btnStart.classList.remove("hidden");
+      waitMsg.classList.add("hidden");
+
+      listenToRoom(roomCode);
+    };
+
+    // Matchmaking: Join Room (P2, P3, or P4)
+    document.getElementById("btn-join-room").onclick = async () => {
+      if (!myUid) return alert("Connecting to server...");
+      const code = document.getElementById("join-code").value.trim().toUpperCase();
+      const name = document.getElementById("join-name").value.trim() || "Player";
+      const vehicle = document.getElementById("join-vehicle").value;
+
+      if (code.length !== 4) return alert("Enter a 4-letter room code");
+
+      const roomRef = ref(db, `arcade_v2/${code}`);
+      const snap = await get(roomRef);
+      if (!snap.exists()) return alert("Room not found!");
+
+      const data = snap.val();
+      if (data.status !== "waiting") return alert("Game already in progress!");
+
+      const activePlayers = data.players || {};
+      const slots = ["p1", "p2", "p3", "p4"];
+      const freeSlot = slots.find(s => !activePlayers[s]);
+
+      if (!freeSlot) return alert("Room is already full (Max 4 players)!");
+
+      mySlot = freeSlot;
+      roomCode = code;
+      selectedGameType = data.gameType;
+
+      localDriver.x = START_POSITIONS[mySlot].x;
+      localDriver.y = START_POSITIONS[mySlot].y;
+
+      await update(ref(db, `arcade_v2/${code}/players/${mySlot}`), {
+        uid: myUid, name, type: vehicle, x: localDriver.x, y: localDriver.y, angle: 0, speed: 0, lap: 1, alive: true
+      });
+
+      secJoin.classList.add("hidden");
+      tabCreate.parentElement.classList.add("hidden");
+      secWait.classList.remove("hidden");
+      displayCode.textContent = roomCode;
+      btnStart.classList.add("hidden");
+      waitMsg.classList.remove("hidden");
+
+      listenToRoom(roomCode);
+    };
+
+    // Host manually launches game when ready
+    btnStart.onclick = async () => {
+      if (mySlot !== "p1") return;
+      const count = Object.keys(currentRoom.players || {}).length;
+      if (count < 2) return alert("Need at least 2 players to start!");
+      await update(ref(db, `arcade_v2/${roomCode}`), { status: "playing" });
+    };
+
+    function listenToRoom(code) {
+      const roomRef = ref(db, `arcade_v2/${code}`);
+      onDisconnect(ref(db, `arcade_v2/${code}/players/${mySlot}`)).remove();
+
+      onValue(roomRef, (snap) => {
+        const data = snap.val();
+        if (!data) return;
+        currentRoom = data;
+
+        // Update Lobby Player List
+        const players = data.players || {};
+        const count = Object.keys(players).length;
+        playerCount.textContent = count;
+        playerRows.innerHTML = Object.entries(players).map(([slot, p]) => `
+          <div class="player-row">
+            <span style="color:${PLAYER_COLORS[slot]}; font-weight:700;">● ${p.name} (${slot.toUpperCase()})</span>
+            <span style="color:var(--muted);">${p.type.toUpperCase()}</span>
+          </div>
+        `).join("");
+
+        // Transition from lobby to game
+        if (data.status === "playing" && arenaContainer.style.display !== "flex") {
+          lobbyView.classList.add("hidden");
+          arenaContainer.style.display = "flex";
+          document.getElementById("hud-name").textContent = players[mySlot].name;
+          document.getElementById("hud-room").textContent = code;
+          if (data.gameType === "battle") {
+            document.getElementById("hud-lap").parentElement.classList.add("hidden");
+          }
+        }
+
+        if (data.status === "ended") {
+          btnRematch.classList.remove("hidden");
+        }
+      });
+    }
+
+        window.addEventListener("keydown", (e) => {
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = true;
+      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = true;
+      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
+      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = false;
+      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = false;
+      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
+      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
+    });
+
+    function setupTouch(id, prop) {
+      const el = document.getElementById(id);
+      const on = (e) => { e.preventDefault(); keys[prop] = true; el.classList.add("active"); };
+      const off = (e) => { e.preventDefault(); keys[prop] = false; el.classList.remove("active"); };
+      el.addEventListener("touchstart", on, { passive: false });
+      el.addEventListener("touchend", off, { passive: false });
+      el.addEventListener("mousedown", on);
+      el.addEventListener("mouseup", off);
+      el.addEventListener("mouseleave", off);
+    }
+    setupTouch("ctrl-left", "left");
+    setupTouch("ctrl-right", "right");
+    setupTouch("ctrl-gas", "forward");
+    setupTouch("ctrl-brake", "backward");
+
+    // Rematch Reset
+    btnRematch.onclick = async () => {
+      const resetPlayers = {};
+      Object.keys(currentRoom.players).forEach(slot => {
+        resetPlayers[`players/${slot}/x`] = START_POSITIONS[slot].x;
+        resetPlayers[`players/${slot}/y`] = START_POSITIONS[slot].y;
+        resetPlayers[`players/${slot}/angle`] = 0;
+        resetPlayers[`players/${slot}/speed`] = 0;
+        resetPlayers[`players/${slot}/lap`] = 1;
+        resetPlayers[`players/${slot}/alive`] = true;
+      });
+      localDriver.x = START_POSITIONS[mySlot].x;
+      localDriver.y = START_POSITIONS[mySlot].y;
+      localDriver.angle = 0;
+      localDriver.speed = 0;
+      localDriver.lap = 1;
+      localDriver.alive = true;
+
+      await update(ref(db, `arcade_v2/${roomCode}`), {
+        status: "playing",
+        winner: null,
+        ...resetPlayers
+      });
+      btnRematch.classList.add("hidden");
+    };
+
+    // Physics Engine
+    let lastSync = 0;
+
+    function updatePhysics() {
+      if (!currentRoom || currentRoom.status !== "playing" || !localDriver.alive) return;
+
+      const myType = currentRoom.players?.[mySlot]?.type || "car";
+      const spec = SPECS[myType];
+
+      if (keys.forward) localDriver.speed += spec.accel;
+      if (keys.backward) localDriver.speed -= spec.accel * 0.7;
+      localDriver.speed *= spec.friction;
+      localDriver.speed = Math.max(-spec.maxSpeed * 0.4, Math.min(spec.maxSpeed, localDriver.speed));
+
+      if (Math.abs(localDriver.speed) > 0.1) {
+        const dir = localDriver.speed > 0 ? 1 : -1;
+        if (keys.left) localDriver.angle -= spec.turnSpeed * dir;
+        if (keys.right) localDriver.angle += spec.turnSpeed * dir;
+      }
+
+      localDriver.x += Math.cos(localDriver.angle) * localDriver.speed;
+      localDriver.y += Math.sin(localDriver.angle) * localDriver.speed;
+
+      // MODE 1: RACING LAP DETECTION
+      if (selectedGameType === "racing") {
+        if (localDriver.x < 200) localDriver.passedHalf = true;
+        if (localDriver.passedHalf && localDriver.x >= 440 && localDriver.y > 380) {
+          localDriver.passedHalf = false;
+          localDriver.lap += 1;
+          document.getElementById("hud-lap").textContent = `${Math.min(localDriver.lap, 3)}/3`;
+          if (localDriver.lap > 3) {
+            update(ref(db, `arcade_v2/${roomCode}`), {
+              status: "ended",
+              winner: currentRoom.players[mySlot].name
+            });
+          }
+        }
+      }
+
+      // MODE 2: BATTLE ARENA RING OUT
+      if (selectedGameType === "battle") {
+        const distFromCenter = Math.hypot(localDriver.x - canvas.width / 2, localDriver.y - canvas.height / 2);
+        if (distFromCenter > 220) {
+          localDriver.alive = false;
+          update(ref(db, `arcade_v2/${roomCode}/players/${mySlot}/alive`), false);
+          
+          const aliveRemaining = Object.entries(currentRoom.players || {}).filter(([s, p]) => s !== mySlot && p.alive);
+          if (aliveRemaining.length === 1) {
+            update(ref(db, `arcade_v2/${roomCode}`), {
+              status: "ended",
+              winner: aliveRemaining[0][1].name
+            });
+          }
+        }
+      }
+
+      localDriver.x = Math.max(30, Math.min(canvas.width - 30, localDriver.x));
+      localDriver.y = Math.max(30, Math.min(canvas.height - 30, localDriver.y));
+
+      document.getElementById("hud-speed").textContent = Math.round(Math.abs(localDriver.speed) * 28);
+
+      const now = performance.now();
+      if (now - lastSync > 45 && roomCode) {
+        lastSync = now;
+        update(ref(db, `arcade_v2/${roomCode}/players/${mySlot}`), {
+          x: localDriver.x, y: localDriver.y, angle: localDriver.angle, speed: localDriver.speed, lap: localDriver.lap
+        });
+      }
+    }
+
+    // Render Canvas
+    function draw() {
+      if (selectedGameType === "racing") {
+        ctx.fillStyle = "#15803d";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#1e293b";
+        ctx.beginPath();
+        ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 100, 140);
+        ctx.fill();
+
+        ctx.fillStyle = "#15803d";
+        ctx.beginPath();
+        ctx.roundRect(190, 160, canvas.width - 380, canvas.height - 320, 80);
+        ctx.fill();
+
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 2; c++) {
+            ctx.fillStyle = (r + c) % 2 === 0 ? "#ffffff" : "#000000";
+            ctx.fillRect(440 + c * 10, 360 + r * 16, 10, 16);
+          }
+        }
+      } else {
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 230, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#1e293b";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 220, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      if (!currentRoom || !currentRoom.players) return;
+
+      Object.entries(currentRoom.players).forEach(([slot, p]) => {
+        if (!p.alive && selectedGameType === "battle") return;
+        const isMe = slot === mySlot;
+        const posX = isMe ? localDriver.x : p.x;
+        const posY = isMe ? localDriver.y : p.y;
+        const angle = isMe ? localDriver.angle : p.angle;
+        drawVehicle(posX, posY, angle, p.type, `${p.name} ${isMe ? "(You)" : ""}`, PLAYER_COLORS[slot]);
+      });
+
+      if (currentRoom.status === "ended") {
+        ctx.fillStyle = "rgba(9, 13, 22, 0.88)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#facc15";
+        ctx.font = "bold 36px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText(`🏆 ${currentRoom.winner} WINS!`, canvas.width / 2, canvas.height / 2 - 10);
+
+        ctx.font = "16px system-ui";
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillText("Click 'Play Again' below to reset the arena", canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+
+    function drawVehicle(x, y, angle, type, label, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      if (type === "car") {
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.roundRect(-16, -9, 32, 18, 4); ctx.fill();
+        ctx.fillStyle = "#090d16"; ctx.fillRect(-2, -7, 10, 14);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(-12, -12, 8, 3); ctx.fillRect(6, -12, 8, 3);
+        ctx.fillRect(-12, 9, 8, 3); ctx.fillRect(6, 9, 8, 3);
+      } else {
+        ctx.fillStyle = color; ctx.fillRect(-12, -3, 24, 6);
+        ctx.fillStyle = "#000"; ctx.fillRect(-14, -2, 6, 4); ctx.fillRect(8, -2, 6, 4);
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x, y - 18);
+    }
+
+    function mainLoop() {
+      updatePhysics();
+      draw();
+      requestAnimationFrame(mainLoop);
+    }
+    mainLoop();
+  </script>
+</body>
+</html>
