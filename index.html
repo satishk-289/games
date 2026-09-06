@@ -708,7 +708,207 @@ const football = {
     ctx.restore();
   }
 };
-          
+
+    const basketball = {
+  canvas: null,
+  ctx: null,
+  p1: { x: 200, y: 340, vx: 0, vy: 0, r: 24, score: 0, onGround: true, name: "Player 1" },
+  p2: { x: 600, y: 340, vx: 0, vy: 0, r: 24, score: 0, onGround: true, name: "AI Bot 🤖" },
+  ball: { x: 220, y: 310, vx: 0, vy: 0, r: 13, heldBy: "p1" },
+  hoopLeft: { x: 50, y: 190, r: 26 },
+  hoopRight: { x: 750, y: 190, r: 26 },
+  active: false,
+  winner: null,
+  isSolo: true,
+  myRole: "p1",
+
+  init(canvasId, options = {}) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    this.isSolo = options.isSolo ?? true;
+    this.myRole = options.myRole || "p1";
+    if (options.p1Name) this.p1.name = options.p1Name;
+    if (options.p2Name) this.p2.name = options.p2Name;
+    this.p1.score = 0;
+    this.p2.score = 0;
+    this.winner = null;
+    this.resetRound("p1");
+    this.active = true;
+  },
+
+  resetRound(startingPlayer = "p1") {
+    this.p1.x = 200; this.p1.y = 340; this.p1.vx = 0; this.p1.vy = 0;
+    this.p2.x = 600; this.p2.y = 340; this.p2.vx = 0; this.p2.vy = 0;
+    this.ball.heldBy = startingPlayer;
+    this.ball.vx = 0; this.ball.vy = 0;
+  },
+
+  updatePhysics(keys) {
+    if (!this.active || this.winner) return;
+
+    const me = this.myRole === "p1" ? this.p1 : this.p2;
+
+    if (keys.l) me.vx = -4.5;
+    else if (keys.r) me.vx = 4.5;
+    else me.vx *= 0.8;
+
+    if (keys.f && me.onGround) {
+      me.vy = -13;
+      me.onGround = false;
+    }
+
+    if (keys.b && this.ball.heldBy === this.myRole) {
+      this.ball.heldBy = null;
+      const dir = this.myRole === "p1" ? 1 : -1;
+      this.ball.vx = (me.vx * 0.5) + (dir * 9.5);
+      this.ball.vy = -12.5;
+    }
+
+    me.x += me.vx;
+    me.y += me.vy;
+    me.vy += 0.65;
+    if (me.y >= 340) { me.y = 340; me.vy = 0; me.onGround = true; }
+    me.x = Math.max(70, Math.min(730, me.x));
+
+    if (this.isSolo) {
+      const p2 = this.p2;
+      if (this.ball.heldBy === "p2") {
+        if (p2.x > 380) p2.vx = -4;
+        if (p2.onGround && Math.random() < 0.05) { p2.vy = -13; p2.onGround = false; }
+        if (p2.y < 280 && Math.random() < 0.1) {
+          this.ball.heldBy = null;
+          this.ball.vx = -10 + p2.vx * 0.5;
+          this.ball.vy = -12;
+        }
+      } else {
+        const targetX = this.ball.heldBy === "p1" ? this.p1.x + 60 : this.ball.x;
+        if (p2.x < targetX - 10) p2.vx = 4;
+        else if (p2.x > targetX + 10) p2.vx = -4;
+        else p2.vx = 0;
+
+        if (this.ball.y < 280 && Math.abs(p2.x - this.ball.x) < 40 && p2.onGround) {
+          p2.vy = -12.5;
+          p2.onGround = false;
+        }
+      }
+      p2.x += p2.vx;
+      p2.y += p2.vy;
+      p2.vy += 0.65;
+      if (p2.y >= 340) { p2.y = 340; p2.vy = 0; p2.onGround = true; }
+      p2.x = Math.max(100, Math.min(730, p2.x));
+    }
+
+    if (this.ball.heldBy) {
+      const holder = this.ball.heldBy === "p1" ? this.p1 : this.p2;
+      const offset = this.ball.heldBy === "p1" ? 18 : -18;
+      this.ball.x = holder.x + offset;
+      this.ball.y = holder.y - 15;
+    } else {
+      this.ball.x += this.ball.vx;
+      this.ball.y += this.ball.vy;
+      this.ball.vy += 0.52;
+      this.ball.vx *= 0.99;
+
+      if (this.ball.y >= 360) {
+        this.ball.y = 360;
+        this.ball.vy = -this.ball.vy * 0.75;
+      }
+      if (this.ball.x <= 20) { this.ball.x = 20; this.ball.vx = Math.abs(this.ball.vx) * 0.8; }
+      if (this.ball.x >= 780) { this.ball.x = 780; this.ball.vx = -Math.abs(this.ball.vx) * 0.8; }
+
+      [ { id: "p1", p: this.p1 }, { id: "p2", p: this.p2 } ].forEach(({ id, p }) => {
+        if (Math.hypot(this.ball.x - p.x, this.ball.y - p.y) < p.r + this.ball.r) {
+          if (this.ball.vy > 0 || Math.abs(this.ball.vx) < 3) {
+            this.ball.heldBy = id;
+          }
+        }
+      });
+
+      if (Math.hypot(this.ball.x - this.hoopRight.x, this.ball.y - this.hoopRight.y) < 18 && this.ball.vy > 0) {
+        this.p1.score++;
+        this.checkWinner();
+        this.resetRound("p2");
+      } else if (Math.hypot(this.ball.x - this.hoopLeft.x, this.ball.y - this.hoopLeft.y) < 18 && this.ball.vy > 0) {
+        this.p2.score++;
+        this.checkWinner();
+        this.resetRound("p1");
+      }
+    }
+  },
+
+  checkWinner() {
+    if (this.p1.score >= 5) this.winner = this.p1.name;
+    else if (this.p2.score >= 5) this.winner = this.p2.name;
+    if (this.winner) document.getElementById("btn-replay").classList.remove("hidden");
+  },
+
+  render() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    ctx.fillStyle = "#b45309";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.fillStyle = "#78350f";
+    ctx.fillRect(0, 375, this.canvas.width, 45);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 375); ctx.stroke();
+    ctx.beginPath(); ctx.arc(400, 375, 120, Math.PI, 0); ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(`${this.p1.name} (${this.p1.score})   🏀   (${this.p2.score}) ${this.p2.name}`, 400, 35);
+
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(20, 140, 8, 80);
+    ctx.strokeStyle = "#ea580c";
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(28, 190); ctx.lineTo(65, 190); ctx.stroke();
+
+    ctx.fillRect(772, 140, 8, 80);
+    ctx.beginPath(); ctx.moveTo(735, 190); ctx.lineTo(772, 190); ctx.stroke();
+
+    this.drawPlayer(this.p1.x, this.p1.y, "#38bdf8", this.p1.name);
+    this.drawPlayer(this.p2.x, this.p2.y, "#ef4444", this.p2.name);
+
+    ctx.save();
+    ctx.translate(this.ball.x, this.ball.y);
+    ctx.fillStyle = "#f97316";
+    ctx.beginPath(); ctx.arc(0, 0, this.ball.r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#7c2d12";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, this.ball.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    if (this.winner) {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 36px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(`🏆 ${this.winner} WINS!`, this.canvas.width / 2, this.canvas.height / 2);
+    }
+  },
+
+  drawPlayer(x, y, color, label) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(-14, -10, 28, 28, 6); ctx.fill();
+    ctx.fillStyle = "#fed7aa";
+    ctx.beginPath(); ctx.arc(0, -20, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(label, 0, -40);
+    ctx.restore();
+  }
+};
+                       
     // Runner Obstacles
     const hurdles = [260, 480, 700];
 
@@ -718,6 +918,8 @@ const football = {
       if (running) {
         const me = myRole === "p1" ? p1 : p2;
       if (activeGame === "soccer") football.updatePhysics(keys);
+                if (activeGame === "basket") basketball.updatePhysics(keys);
+        
         
         // 1. APEX RACE ENGINE
         if (activeGame === "race") {
@@ -802,6 +1004,8 @@ const football = {
       if (activeGame === "race") renderRace();
       if (activeGame === "run") renderRunner();
       if (activeGame === "soccer") football.render();
+      if (activeGame === "basket") basketball.render();
+      
   
       requestAnimationFrame(loop);
     }
