@@ -3,789 +3,980 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Satish Games - 2 Player & Solo</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <title>Apex Racer 2P & AI - Created by Satish</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --card: #111827;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #f8fafc;
+      --muted: #64748b;
+    }
+    * { 
+      box-sizing: border-box; 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
+      margin: 0; padding: 0; 
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Top Instagram Banner */
+    .creator-banner {
+      width: 100%;
+      background: linear-gradient(90deg, #4f46e5, #ec4899, #f59e0b);
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .creator-banner:hover { opacity: 0.92; }
+
+    .main-wrap {
+      width: 100%;
+      max-width: 900px;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Lobby Panel */
+    .panel {
+      background: var(--card);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 0.2rem; }
+    p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    .mode-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 0.75rem 0.5rem;
+      border-radius: 8px;
+      background: #0b0f19;
+      border: 2px solid #1f2937;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 1.2rem; }
+    .tab {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 8px;
+      background: #090d16;
+      border: 1px solid #374151;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .tab.active { background: var(--accent); color: #090d16; border-color: var(--accent); }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #090d16;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 0.85rem;
+    }
+    button.btn-action {
+      background: var(--accent);
+      color: #090d16;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      padding: 0.85rem;
+      transition: opacity 0.2s;
+    }
+    button.btn-action:hover { opacity: 0.9; }
+
+    .code-box {
+      background: #090d16;
+      border: 2px dashed var(--accent);
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: var(--accent);
+      margin: 1rem 0;
+    }
+
+    /* Game Arena */
+    #arena-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 880px;
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .hud b { color: #fff; }
+    canvas {
+      border: 2px solid #374151;
+      border-radius: 14px;
+      width: 100%;
+      height: auto;
+      display: block;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      background: #064e3b;
+    }
+
+    /* Mobile Controls */
+    .mobile-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 880px;
+      margin-top: 0.8rem;
+    }
+    .ctrl-group { display: flex; gap: 12px; }
+    .touch-btn {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: rgba(17, 24, 39, 0.85);
+      border: 2px solid #4b5563;
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      touch-action: none;
+    }
+    .touch-btn:active, .touch-btn.active { background: var(--accent); color: #000; }
+    .touch-btn.gas:active, .touch-btn.gas.active { background: var(--green); color: #fff; }
+    .touch-btn.brake:active, .touch-btn.brake.active { background: var(--red); color: #fff; }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid #4b5563;
+      color: var(--muted);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
 
-  <header class="top-bar">
-    <div class="brand-title">🎮 2 Player Games</div>
-    <a href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer" class="creator-badge">
-      <span>Made by Satish</span>
-      <span class="insta-handle">@_satish_official_16</span>
-    </a>
-  </header>
+  <!-- Top Instagram Creator Banner -->
+  <a class="creator-banner" href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer">
+    ⚡ Created by Satish • Follow on Instagram
+  </a>
 
-  <main id="lobbyView" class="container">
-    <section class="room-panel">
-      <div class="room-input-group">
-        <input type="text" id="directRoomInput" placeholder="Enter 4-digit Room Code" maxlength="6" />
-        <button id="btnJoinCode" class="btn-action">Join Room</button>
+  <div class="main-wrap">
+
+    <!-- Matchmaking & Game Selection -->
+    <div class="panel" id="lobby-panel">
+      <h1>APEX RACER</h1>
+      <p class="sub">High-Speed Multiplayer & Smart AI</p>
+
+      <div class="mode-select">
+        <button class="mode-btn active" id="btn-mode-ai">🤖 Solo vs AI Bot</button>
+        <button class="mode-btn" id="btn-mode-online">👥 Play with Friends</button>
       </div>
-      <p class="room-hint">Or click any game below to host a room or challenge the Bot!</p>
-    </section>
 
-    <section class="game-grid" id="gameGrid"></section>
-  </main>
+      <!-- SOLO VS AI BOT -->
+      <div id="section-ai">
+        <input type="text" id="ai-player-name" placeholder="Driver Name" maxlength="12" value="Player 1" />
+        <select id="ai-player-vehicle">
+          <option value="car">🏎️ Turbo Supercar (High Top Speed)</option>
+          <option value="bike">🏍️ Drift Superbike (Fast Launch & Agility)</option>
+        </select>
+        <select id="ai-difficulty">
+          <option value="easy">Bot Skill: Amateur</option>
+          <option value="medium" selected>Bot Skill: Pro Driver</option>
+          <option value="hard">Bot Skill: Master Apex</option>
+        </select>
+        <button class="btn-action" id="btn-start-ai">Race vs AI Bot</button>
+      </div>
 
-  <div id="modeModal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <h2 id="modalGameTitle">Select Mode</h2>
-      <p id="modalGameDesc">Choose how you want to challenge your opponent:</p>
-      <div class="modal-buttons">
-        <button id="btnPlayBot" class="btn-primary">🤖 Play vs Bot (AI)</button>
-        <button id="btnCreateRoom" class="btn-accent">👥 Create Room (Host)</button>
-        <div class="join-box">
-          <input type="text" id="modalRoomCode" placeholder="Code (e.g. 4821)" maxlength="6" />
-          <button id="btnJoinRoom" class="btn-secondary">Join Friend</button>
+      <!-- PLAY ONLINE WITH FRIENDS -->
+      <div id="section-online" class="hidden">
+        <div class="tabs">
+          <button class="tab active" id="tab-create">Create Match</button>
+          <button class="tab" id="tab-join">Join Match</button>
         </div>
-        <button id="btnCloseModal" class="btn-close">Cancel</button>
+
+        <div id="sec-mp-create">
+          <input type="text" id="create-name" placeholder="Driver Name" maxlength="12" value="Player 1" />
+          <select id="create-vehicle">
+            <option value="car">🏎️ Super Car</option>
+            <option value="bike">🏍️ Super Bike</option>
+          </select>
+          <button class="btn-action" id="btn-create-room">Create Room & Get Code</button>
+        </div>
+
+        <div id="sec-mp-join" class="hidden">
+          <input type="text" id="join-name" placeholder="Driver Name" maxlength="12" value="Player 2" />
+          <select id="join-vehicle">
+            <option value="car">🏎️ Super Car</option>
+            <option value="bike">🏍️ Super Bike</option>
+          </select>
+          <input type="text" id="join-code" placeholder="Enter 4-Letter Code" maxlength="4" style="text-transform: uppercase;" />
+          <button class="btn-action" id="btn-join-room">Join & Race</button>
+        </div>
+
+        <div id="sec-mp-wait" class="hidden">
+          <p style="font-size: 0.85rem; color: var(--muted);">Share code with your friend:</p>
+          <div class="code-box" id="display-room-code">----</div>
+          <p style="font-size: 0.85rem; color: var(--accent);">Waiting for Player 2 to type the code...</p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="gameScreen" class="game-screen hidden">
-    <div class="game-top-bar">
-      <button id="btnLeaveGame" class="btn-leave">← Back to Menu</button>
-      <div id="roomStatusDisplay" class="room-status">Mode: Solo</div>
-      <div id="scoreboard" class="scoreboard">Score: 0</div>
-    </div>
-
-    <div id="canvasWrapper" class="canvas-wrapper">
-      <canvas id="gameCanvas" width="400" height="600"></canvas>
-      
-      <div id="tttBoard" class="ttt-grid hidden">
-        <div class="cell" data-idx="0"></div>
-        <div class="cell" data-idx="1"></div>
-        <div class="cell" data-idx="2"></div>
-        <div class="cell" data-idx="3"></div>
-        <div class="cell" data-idx="4"></div>
-        <div class="cell" data-idx="5"></div>
-        <div class="cell" data-idx="6"></div>
-        <div class="cell" data-idx="7"></div>
-        <div class="cell" data-idx="8"></div>
+    <!-- Racing Arena -->
+    <div id="arena-wrap">
+      <div class="hud">
+        <span>Driver: <b id="hud-name">-</b></span>
+        <span>Speed: <b id="hud-speed">0</b> km/h</span>
+        <span>Lap: <b id="hud-lap">1/3</b></span>
+        <span>Opponent: <b id="hud-opp">AI Bot</b></span>
       </div>
+
+      <canvas id="raceCanvas" width="880" height="520"></canvas>
+
+      <!-- On-Screen Touch Controls for Mobile -->
+      <div class="mobile-controls">
+        <div class="ctrl-group">
+          <div class="touch-btn" id="ctrl-left">◀</div>
+          <div class="touch-btn" id="ctrl-right">▶</div>
+        </div>
+        <div class="ctrl-group">
+          <div class="touch-btn brake" id="ctrl-brake">REV</div>
+          <div class="touch-btn gas" id="ctrl-gas">GAS</div>
+        </div>
+      </div>
+
+      <button id="btn-rematch" class="btn-action hidden" style="margin-top: 14px; max-width: 220px;">Race Again</button>
+      <button class="btn-back" id="btn-exit-game">Exit to Menu</button>
     </div>
 
-    <div id="mobileControls" class="mobile-controls">
-      <button id="btnLeft" class="touch-btn">◀ Left</button>
-      <button id="btnAction" class="touch-btn action-btn">⚡ Action</button>
-      <button id="btnRight" class="touch-btn">Right ▶</button>
-    </div>
   </div>
 
-  <script src="app.js"></script>
-</body>
-</html>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  user-select: none;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getDatabase, ref, set, get, update, onValue, onDisconnect 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-body {
-  background-color: #689f38; /* Signature 2-player games green */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzLchy5M2fLne4c7Ghw1KNN8wVrlZdd8M",
+      authDomain: "friendsgame-872f5.firebaseapp.com",
+      databaseURL: "https://friendsgame-872f5-default-rtdb.firebaseio.com",
+      projectId: "friendsgame-872f5",
+      storageBucket: "friendsgame-872f5.firebasestorage.app",
+      messagingSenderId: "522534013233",
+      appId: "1:522534013233:web:f5faa6e6795023d0420810",
+      measurementId: "G-PW5H3G97QR"
+    };
 
-/* Header */
-.top-bar {
-  background-color: #558b2f;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-.brand-title {
-  color: #ffffff;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
+    let myUid = null;
+    let roomCode = null;
+    let myRole = "p1";
+    let isAiGame = true;
+    let gameActive = false;
+    let raceWinner = null;
 
-.creator-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-decoration: none;
-  color: #fff;
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: transform 0.2s ease;
-}
+    signInAnonymously(auth).then(cred => { myUid = cred.user.uid; });
 
-.creator-badge:hover {
-  transform: scale(1.05);
-}
+    async function ensureAuth() {
+      if (myUid) return myUid;
+      const cred = await signInAnonymously(auth);
+      myUid = cred.user.uid;
+      return myUid;
+    }
 
-.insta-handle {
-  font-size: 0.65rem;
-  opacity: 0.9;
-}
+    // UI Wire-up
+    const lobbyPanel = document.getElementById("lobby-panel");
+    const arenaWrap = document.getElementById("arena-wrap");
+    const btnModeAi = document.getElementById("btn-mode-ai");
+    const btnModeOnline = document.getElementById("btn-mode-online");
+    const secAi = document.getElementById("section-ai");
+    const secOnline = document.getElementById("section-online");
+    const tabCreate = document.getElementById("tab-create");
+    const tabJoin = document.getElementById("tab-join");
+    const secMpCreate = document.getElementById("sec-mp-create");
+    const secMpJoin = document.getElementById("sec-mp-join");
+    const secMpWait = document.getElementById("sec-mp-wait");
+    const displayCode = document.getElementById("display-room-code");
+    const hudName = document.getElementById("hud-name");
+    const hudOpp = document.getElementById("hud-opp");
+    const hudSpeed = document.getElementById("hud-speed");
+    const hudLap = document.getElementById("hud-lap");
+    const btnRematch = document.getElementById("btn-rematch");
+    const btnExit = document.getElementById("btn-exit-game");
+    const canvas = document.getElementById("raceCanvas");
+    const ctx = canvas.getContext("2d");
 
-/* Lobby & Room Header */
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 16px;
-  width: 100%;
-}
+    btnExit.onclick = () => location.reload();
 
-.room-panel {
-  background: #7cb342;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+    btnModeAi.onclick = () => {
+      isAiGame = true;
+      btnModeAi.classList.add("active");
+      btnModeOnline.classList.remove("active");
+      secAi.classList.remove("hidden");
+      secOnline.classList.add("hidden");
+    };
+    btnModeOnline.onclick = () => {
+      isAiGame = false;
+      btnModeOnline.classList.add("active");
+      btnModeAi.classList.remove("active");
+      secOnline.classList.remove("hidden");
+      secAi.classList.add("hidden");
+    };
 
-.room-input-group {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
+    tabCreate.onclick = () => {
+      tabCreate.classList.add("active"); tabJoin.classList.remove("active");
+      secMpCreate.classList.remove("hidden"); secMpJoin.classList.add("hidden");
+    };
+    tabJoin.onclick = () => {
+      tabJoin.classList.add("active"); tabCreate.classList.remove("active");
+      secMpJoin.classList.remove("hidden"); secMpCreate.classList.add("hidden");
+    };
 
-.room-input-group input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1rem;
-  width: 180px;
-}
+    function randomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let res = "";
+      for (let i = 0; i < 4; i++) res += chars[Math.floor(Math.random() * chars.length)];
+      return res;
+    }
 
-.btn-action {
-  background: #ffb300;
-  color: #2e3d00;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-}
+    const SPECS = {
+      car: { accel: 0.15, maxSpeed: 5.5, turnSpeed: 0.048, friction: 0.985 },
+      bike: { accel: 0.21, maxSpeed: 4.8, turnSpeed: 0.072, friction: 0.975 }
+    };
 
-.room-hint {
-  font-size: 0.8rem;
-  color: #f1f8e9;
-}
+    // AI Waypoints around the racetrack
+    const AI_WAYPOINTS = [
+      { x: 500, y: 440 }, { x: 700, y: 440 }, { x: 770, y: 390 },
+      { x: 780, y: 260 }, { x: 770, y: 130 }, { x: 700, y: 80 },
+      { x: 440, y: 80 }, { x: 180, y: 80 }, { x: 110, y: 130 },
+      { x: 100, y: 260 }, { x: 110, y: 390 }, { x: 180, y: 440 },
+      { x: 350, y: 440 }
+    ];
 
-/* Grid View */
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
+    const localPlayer = {
+      x: 440, y: 415, angle: 0, speed: 0, lap: 1, passedHalf: false,
+      name: "Driver", type: "car"
+    };
 
-@media (max-width: 600px) {
-  .game-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
+    const opponent = {
+      x: 440, y: 445, angle: 0, speed: 0, lap: 1, passedHalf: false,
+      name: "Apex Bot 🤖", type: "bike",
+      targetX: 440, targetY: 445, targetAngle: 0,
+      wpIdx: 0, maxSpeed: 4.8, accel: 0.16, turnSpeed: 0.065
+    };
 
-.game-card {
-  background: #8bc34a;
-  border-radius: 14px;
-  padding: 8px;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.12);
-  transition: transform 0.15s ease, background 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    const particles = [];
+    const skidmarks = [];
 
-.game-card:hover {
-  transform: translateY(-4px);
-  background: #9ccc65;
-}
+    function addSkidmark(x, y) {
+      skidmarks.push({ x, y, alpha: 0.5 });
+      if (skidmarks.length > 350) skidmarks.shift();
+    }
 
-.game-thumbnail {
-  width: 100%;
-  aspect-ratio: 16/10;
-  border-radius: 10px;
-  object-fit: cover;
-  background: #33691e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
-  color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
+    function spawnSmoke(x, y, color = "rgba(200,200,200,0.4)") {
+      particles.push({
+        x: x + (Math.random() - 0.5) * 6,
+        y: y + (Math.random() - 0.5) * 6,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5,
+        size: 3 + Math.random() * 4,
+        alpha: 0.6,
+        color: color
+      });
+    }
 
-.game-title {
-  margin-top: 8px;
-  color: #1b3803;
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
-.coming-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #e53935;
-  color: white;
-  font-size: 0.6rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 800;
-}
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 100;
-}
-
-.modal-card {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 380px;
-  text-align: center;
-}
-
-.modal-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.btn-primary, .btn-accent, .btn-secondary, .btn-close {
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-primary { background: #43a047; color: white; }
-.btn-accent { background: #fb8c00; color: white; }
-.join-box { display: flex; gap: 6px; }
-.join-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; text-align: center; }
-.btn-secondary { background: #1e88e5; color: white; }
-.btn-close { background: #eee; color: #555; }
-
-/* In Game Screen */
-.game-screen {
-  position: fixed;
-  inset: 0;
-  background: #212121;
-  display: flex;
-  flex-direction: column;
-  z-index: 200;
-}
-
-.game-top-bar {
-  background: #111;
-  color: white;
-  padding: 8px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-leave {
-  background: #e53935;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.canvas-wrapper {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: #1b1b1b;
-}
-
-#gameCanvas {
-  background: #000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  max-width: 100%;
-  max-height: 100%;
-}
-
-/* Tic Tac Toe Grid */
-.ttt-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 90px);
-  grid-template-rows: repeat(3, 90px);
-  gap: 8px;
-  background: #333;
-  padding: 8px;
-  border-radius: 12px;
-}
-
-.cell {
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: 900;
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-/* Mobile Controls */
-.mobile-controls {
-  background: #111;
-  padding: 12px;
-  display: flex;
-  justify-content: space-around;
-  gap: 10px;
-}
-
-.touch-btn {
-  flex: 1;
-  background: #37474f;
-  color: #fff;
-  border: 2px solid #546e7a;
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  touch-action: manipulation;
-}
-
-.action-btn {
-  background: #f4511e;
-  border-color: #ff7043;
-}
-
-.touch-btn:active {
-  background: #78909c;
-}
-
-.hidden {
-  display: none !important;
-}
-// --- Firebase Config Integrated with your project keys ---
-const firebaseConfig = {
-  apiKey: "AIzaSyBzLchy5M2fLne4c7Ghw1KNN8wVrlZdd8M",
-  authDomain: "friendsgame-872f5.firebaseapp.com",
-  databaseURL: "https://friendsgame-872f5-default-rtdb.firebaseio.com",
-  projectId: "friendsgame-872f5",
-  storageBucket: "friendsgame-872f5.firebasestorage.app",
-  messagingSenderId: "522534013233",
-  appId: "1:522534013233:web:f5faa6e6795023d0420810",
-  measurementId: "G-PW5H3G97QR"
-};
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.database();
-
-// --- Sound Synthesizer for Magic Tiles (No external assets required) ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playTileTone(freq) {
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.4);
-}
-
-// --- Catalog Definition ---
-const gamesList = [
-  { id: "car-rush", title: "Car Rush 2D", emoji: "🏎️", playable: true, type: "canvas" },
-  { id: "bike-duel", title: "Highway Bike", emoji: "🏍️", playable: true, type: "canvas" },
-  { id: "tic-tac-toe", title: "Tic Tac Toe", emoji: "❌⭕", playable: true, type: "ttt" },
-  { id: "magic-tiles", title: "Magic Tiles 3", emoji: "🎹", playable: true, type: "canvas" },
-  { id: "subway-surfers", title: "Subway Surfers", emoji: "🏃‍♂️", playable: false },
-  { id: "fire-water", title: "Fire and Water", emoji: "🔥💧", playable: false },
-  { id: "basket-random", title: "Basket Random", emoji: "🏀", playable: false },
-  { id: "boxing-random", title: "Boxing Random", emoji: "🥊", playable: false }
-];
-
-// --- Application State ---
-let activeGame = null;
-let currentMode = "bot"; // "bot" or "room"
-let currentRoomCode = null;
-let isHost = false;
-let animationFrameId = null;
-
-// --- Initialize Lobby Grid ---
-const grid = document.getElementById("gameGrid");
-gamesList.forEach(game => {
-  const card = document.createElement("div");
-  card.className = "game-card";
-  card.innerHTML = `
-    <div class="game-thumbnail">
-      ${game.emoji}
-      ${!game.playable ? '<span class="coming-badge">SOON</span>' : ''}
-    </div>
-    <div class="game-title">${game.title}</div>
-  `;
-  card.onclick = () => openGameSelection(game);
-  grid.appendChild(card);
-});
-
-// --- Modal Controls ---
-const modeModal = document.getElementById("modeModal");
-function openGameSelection(game) {
-  if (!game.playable) {
-    alert(`${game.title} is coming soon! Stay tuned.`);
-    return;
-  }
-  activeGame = game;
-  document.getElementById("modalGameTitle").innerText = game.title;
-  modeModal.classList.remove("hidden");
-}
-
-document.getElementById("btnCloseModal").onclick = () => modeModal.classList.add("hidden");
-
-document.getElementById("btnPlayBot").onclick = () => {
-  currentMode = "bot";
-  modeModal.classList.add("hidden");
-  startGameEngine();
-};
-
-document.getElementById("btnCreateRoom").onclick = () => {
-  currentMode = "room";
-  isHost = true;
-  currentRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
-  setupRoomSync(currentRoomCode);
-  modeModal.classList.add("hidden");
-  startGameEngine();
-};
-
-document.getElementById("btnJoinRoom").onclick = () => {
-  const code = document.getElementById("modalRoomCode").value.trim();
-  if (code.length < 4) return alert("Enter a valid 4-digit code");
-  joinExistingRoom(code);
-};
-
-document.getElementById("btnJoinCode").onclick = () => {
-  const code = document.getElementById("directRoomInput").value.trim();
-  if (code.length < 4) return alert("Enter code");
-  activeGame = gamesList[0];
-  joinExistingRoom(code);
-};
-
-function joinExistingRoom(code) {
-  currentMode = "room";
-  isHost = false;
-  currentRoomCode = code;
-  setupRoomSync(code);
-  modeModal.classList.add("hidden");
-  startGameEngine();
-}
-
-// --- Multiplayer Room Synchronization ---
-function setupRoomSync(code) {
-  const roomRef = db.ref("rooms/" + code);
-  if (isHost) {
-    roomRef.set({
-      gameId: activeGame.id,
-      hostX: 180,
-      guestX: 180,
-      hostScore: 0,
-      guestScore: 0,
-      board: ["","","","","","","","",""],
-      turn: "X"
+    // Keyboard & Mobile Control Listeners
+    const keys = { forward: false, backward: false, left: false, right: false };
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = true;
+      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = true;
+      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
+      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
     });
-    alert(`Room Created! Share this Room Code with your friend: ${code}`);
-  }
-
-  roomRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-    if (activeGame.type === "ttt" && data.board) {
-      renderTTTBoard(data.board);
-    }
-    if (activeGame.type === "canvas" && window.syncMultiplayerData) {
-      window.syncMultiplayerData(data);
-    }
-  });
-}
-
-// --- Screen Switching & Exit ---
-const gameScreen = document.getElementById("gameScreen");
-const lobbyView = document.getElementById("lobbyView");
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const tttBoard = document.getElementById("tttBoard");
-
-document.getElementById("btnLeaveGame").onclick = () => {
-  cancelAnimationFrame(animationFrameId);
-  if (currentRoomCode) {
-    db.ref("rooms/" + currentRoomCode).off();
-  }
-  gameScreen.classList.add("hidden");
-  lobbyView.classList.remove("hidden");
-  tttBoard.classList.add("hidden");
-  canvas.classList.remove("hidden");
-};
-
-function startGameEngine() {
-  lobbyView.classList.add("hidden");
-  gameScreen.classList.remove("hidden");
-  document.getElementById("roomStatusDisplay").innerText = 
-    currentMode === "bot" ? "Mode: AI Bot" : `Room: ${currentRoomCode} (${isHost ? "Host" : "Guest"})`;
-
-  if (activeGame.type === "ttt") {
-    canvas.classList.add("hidden");
-    tttBoard.classList.remove("hidden");
-    initTicTacToe();
-  } else {
-    canvas.classList.remove("hidden");
-    tttBoard.classList.add("hidden");
-    if (activeGame.id === "car-rush" || activeGame.id === "bike-duel") {
-      runVehicleGame(activeGame.id === "car-rush" ? "car" : "bike");
-    } else if (activeGame.id === "magic-tiles") {
-      runMagicTiles();
-    }
-  }
-}
-
-// --- Game Engine: Car & Bike Racing ---
-function runVehicleGame(vehicleType) {
-  let playerX = 180;
-  let opponentX = 180;
-  let opponentY = -100;
-  let score = 0;
-  const speed = vehicleType === "car" ? 6 : 8;
-
-  let leftPressed = false;
-  let rightPressed = false;
-
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowLeft" || e.key === "a") leftPressed = true;
-    if (e.key === "ArrowRight" || e.key === "d") rightPressed = true;
-  };
-  const handleKeyUp = (e) => {
-    if (e.key === "ArrowLeft" || e.key === "a") leftPressed = false;
-    if (e.key === "ArrowRight" || e.key === "d") rightPressed = false;
-  };
-  window.onkeydown = handleKeyDown;
-  window.onkeyup = handleKeyUp;
-
-  const bLeft = document.getElementById("btnLeft");
-  const bRight = document.getElementById("btnRight");
-  bLeft.ontouchstart = () => leftPressed = true;
-  bLeft.ontouchend = () => leftPressed = false;
-  bRight.ontouchstart = () => rightPressed = true;
-  bRight.ontouchend = () => rightPressed = false;
-
-  window.syncMultiplayerData = (data) => {
-    if (isHost) {
-      opponentX = data.guestX || 180;
-    } else {
-      opponentX = data.hostX || 180;
-    }
-  };
-
-  function update() {
-    if (leftPressed && playerX > 40) playerX -= 5;
-    if (rightPressed && playerX < 320) playerX += 5;
-
-    if (currentMode === "bot") {
-      opponentY += speed;
-      if (opponentY > 600) {
-        opponentY = -100;
-        opponentX = 60 + Math.random() * 240;
-        score += 10;
-        document.getElementById("scoreboard").innerText = `Score: ${score}`;
-      }
-      if (Math.abs(playerX - opponentX) < 35 && opponentY > 460 && opponentY < 540) {
-        alert("Crash! Game Over.");
-        playerX = 180;
-        opponentY = -100;
-        score = 0;
-      }
-    } else {
-      const updatePayload = isHost ? { hostX: playerX } : { guestX: playerX };
-      db.ref("rooms/" + currentRoomCode).update(updatePayload);
-    }
-
-    ctx.fillStyle = "#333";
-    ctx.fillRect(0, 0, 400, 600);
-
-    ctx.strokeStyle = "#fff";
-    ctx.setLineDash([20, 20]);
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(200, 0);
-    ctx.lineTo(200, 600);
-    ctx.stroke();
-
-    ctx.fillStyle = vehicleType === "car" ? "#00e676" : "#00b0ff";
-    ctx.fillRect(playerX, 480, 40, vehicleType === "car" ? 60 : 40);
-
-    ctx.fillStyle = "#ff1744";
-    ctx.fillRect(opponentX, currentMode === "bot" ? opponentY : 100, 40, vehicleType === "car" ? 60 : 40);
-
-    animationFrameId = requestAnimationFrame(update);
-  }
-  update();
-}
-
-// --- Game Engine: Magic Tiles 3 ---
-function runMagicTiles() {
-  const notes = [261.63, 329.63, 392.00, 523.25];
-  let tiles = [];
-  let score = 0;
-  let speed = 4;
-
-  function spawnRow() {
-    const lane = Math.floor(Math.random() * 4);
-    tiles.push({ lane, y: -100, clicked: false });
-  }
-
-  canvas.onpointerdown = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const clickX = ((e.clientX - rect.left) / rect.width) * 400;
-    const clickY = ((e.clientY - rect.top) / rect.height) * 600;
-    const laneClicked = Math.floor(clickX / 100);
-
-    tiles.forEach(tile => {
-      if (!tile.clicked && tile.lane === laneClicked && clickY >= tile.y && clickY <= tile.y + 120) {
-        tile.clicked = true;
-        score += 1;
-        playTileTone(notes[laneClicked]);
-        document.getElementById("scoreboard").innerText = `Score: ${score}`;
-      }
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = false;
+      if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = false;
+      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
+      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
     });
-  };
 
-  let tick = 0;
-  function update() {
-    tick++;
-    if (tick % 45 === 0) spawnRow();
-
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, 400, 600);
-
-    ctx.strokeStyle = "#444";
-    ctx.setLineDash([]);
-    for (let i = 1; i < 4; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * 100, 0);
-      ctx.lineTo(i * 100, 600);
-      ctx.stroke();
+    function setupTouch(id, prop) {
+      const el = document.getElementById(id);
+      const on = (e) => { e.preventDefault(); keys[prop] = true; el.classList.add("active"); };
+      const off = (e) => { e.preventDefault(); keys[prop] = false; el.classList.remove("active"); };
+      el.addEventListener("touchstart", on, { passive: false });
+      el.addEventListener("touchend", off, { passive: false });
+      el.addEventListener("mousedown", on);
+      el.addEventListener("mouseup", off);
+      el.addEventListener("mouseleave", off);
     }
+    setupTouch("ctrl-left", "left");
+    setupTouch("ctrl-right", "right");
+    setupTouch("ctrl-gas", "forward");
+    setupTouch("ctrl-brake", "backward");
 
-    for (let i = tiles.length - 1; i >= 0; i--) {
-      const t = tiles[i];
-      t.y += speed;
+    // ==========================================
+    // 1. PLAY SOLO VS AI BOT
+    // ==========================================
+    document.getElementById("btn-start-ai").onclick = () => {
+      isAiGame = true;
+      localPlayer.name = document.getElementById("ai-player-name").value.trim() || "Player 1";
+      localPlayer.type = document.getElementById("ai-player-vehicle").value;
+      const diff = document.getElementById("ai-difficulty").value;
 
-      ctx.fillStyle = t.clicked ? "#555" : "#00e5ff";
-      ctx.fillRect(t.lane * 100 + 4, t.y, 92, 120);
-
-      if (t.y > 600) {
-        if (!t.clicked) {
-          alert(`Game Over! Score: ${score}`);
-          tiles = [];
-          score = 0;
-          break;
-        }
-        tiles.splice(i, 1);
-      }
-    }
-    animationFrameId = requestAnimationFrame(update);
-  }
-  update();
-}
-
-// --- Game Engine: Tic Tac Toe ---
-function initTicTacToe() {
-  let localBoard = ["","","","","","","","",""];
-  const cells = document.querySelectorAll(".cell");
-
-  cells.forEach(cell => {
-    cell.onclick = () => {
-      const idx = cell.getAttribute("data-idx");
-      if (localBoard[idx] !== "") return;
-
-      if (currentMode === "bot") {
-        localBoard[idx] = "X";
-        renderTTTBoard(localBoard);
-        if (!checkWin(localBoard, "X")) {
-          setTimeout(botMove, 300);
-        }
+      if (diff === "easy") {
+        opponent.maxSpeed = 3.9;
+        opponent.accel = 0.12;
+        opponent.turnSpeed = 0.048;
+        opponent.name = "Novice Bot 🤖";
+        opponent.type = "bike";
+      } else if (diff === "medium") {
+        opponent.maxSpeed = 4.8;
+        opponent.accel = 0.17;
+        opponent.turnSpeed = 0.062;
+        opponent.name = "Pro Bot 🤖";
+        opponent.type = "car";
       } else {
-        localBoard[idx] = isHost ? "X" : "O";
-        db.ref("rooms/" + currentRoomCode).update({ board: localBoard });
+        opponent.maxSpeed = 5.4;
+        opponent.accel = 0.20;
+        opponent.turnSpeed = 0.075;
+        opponent.name = "Apex Bot 🤖";
+        opponent.type = "car";
+      }
+
+      resetPositions();
+      startRaceUI();
+    };
+
+    // ==========================================
+    // 2. PLAY ONLINE WITH FRIENDS
+    // ==========================================
+    document.getElementById("btn-create-room").onclick = async () => {
+      await ensureAuth();
+      isAiGame = false;
+      localPlayer.name = document.getElementById("create-name").value.trim() || "Player 1";
+      localPlayer.type = document.getElementById("create-vehicle").value;
+      roomCode = randomCode();
+      myRole = "p1";
+
+      resetPositions();
+
+      const roomRef = ref(db, `racing_v4/${roomCode}`);
+      await set(roomRef, {
+        status: "waiting",
+        winner: null,
+        p1: { name: localPlayer.name, type: localPlayer.type, x: localPlayer.x, y: localPlayer.y, angle: 0, speed: 0, lap: 1 },
+        p2: null
+      });
+
+      secMpCreate.classList.add("hidden");
+      secMpWait.classList.remove("hidden");
+      displayCode.textContent = roomCode;
+
+      listenToRoom(roomCode);
+    };
+
+    document.getElementById("btn-join-room").onclick = async () => {
+      await ensureAuth();
+      isAiGame = false;
+      const code = document.getElementById("join-code").value.trim().toUpperCase();
+      localPlayer.name = document.getElementById("join-name").value.trim() || "Player 2";
+      localPlayer.type = document.getElementById("join-vehicle").value;
+
+      if (code.length !== 4) return alert("Enter the 4-letter room code");
+
+      const roomRef = ref(db, `racing_v4/${code}`);
+      const snap = await get(roomRef);
+      if (!snap.exists()) return alert("Room not found!");
+
+      const data = snap.val();
+      if (data.p2) return alert("Room is already full!");
+
+      roomCode = code;
+      myRole = "p2";
+      resetPositions();
+
+      await update(roomRef, {
+        status: "racing",
+        p2: { name: localPlayer.name, type: localPlayer.type, x: localPlayer.x, y: localPlayer.y, angle: 0, speed: 0, lap: 1 }
+      });
+
+      listenToRoom(roomCode);
+    };
+
+    function listenToRoom(code) {
+      const roomRef = ref(db, `racing_v4/${code}`);
+      onDisconnect(ref(db, `racing_v4/${code}/${myRole}/connected`)).set(false);
+
+      onValue(roomRef, (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        if (data.status === "racing" && !gameActive) {
+          const oppRole = myRole === "p1" ? "p2" : "p1";
+          if (data[oppRole]) {
+            opponent.name = data[oppRole].name;
+            opponent.type = data[oppRole].type;
+          }
+          startRaceUI();
+        }
+        const oppRole = myRole === "p1" ? "p2" : "p1";
+        if (data[oppRole]) {
+          opponent.targetX = data[oppRole].x;
+          opponent.targetY = data[oppRole].y;
+          opponent.targetAngle = data[oppRole].angle;
+          opponent.lap = data[oppRole].lap;
+        }
+
+        if (data.status === "ended") {
+          gameActive = false;
+          raceWinner = data.winner;
+          btnRematch.classList.remove("hidden");
+        }
+      });
+    }
+
+    function resetPositions() {
+      localPlayer.x = 440;
+      localPlayer.y = myRole === "p1" ? 415 : 445;
+      localPlayer.angle = 0;
+      localPlayer.speed = 0;
+      localPlayer.lap = 1;
+      localPlayer.passedHalf = false;
+
+      opponent.x = 440;
+      opponent.y = myRole === "p1" ? 445 : 415;
+      opponent.angle = 0;
+      opponent.speed = 0;
+      opponent.lap = 1;
+      opponent.passedHalf = false;
+      opponent.wpIdx = 0;
+      opponent.targetX = opponent.x;
+      opponent.targetY = opponent.y;
+      opponent.targetAngle = 0;
+
+      particles.length = 0;
+      skidmarks.length = 0;
+      raceWinner = null;
+    }
+
+    function startRaceUI() {
+      gameActive = true;
+      lobbyPanel.classList.add("hidden");
+      arenaWrap.style.display = "flex";
+      hudName.textContent = localPlayer.name;
+      hudOpp.textContent = opponent.name;
+      hudLap.textContent = "1/3";
+      btnRematch.classList.add("hidden");
+    }
+
+    btnRematch.onclick = async () => {
+      resetPositions();
+      if (isAiGame) {
+        startRaceUI();
+      } else {
+        await update(ref(db, `racing_v4/${roomCode}`), {
+          status: "racing",
+          winner: null,
+          "p1/x": 440, "p1/y": 415, "p1/angle": 0, "p1/speed": 0, "p1/lap": 1,
+          "p2/x": 440, "p2/y": 445, "p2/angle": 0, "p2/speed": 0, "p2/lap": 1
+        });
+        startRaceUI();
       }
     };
-  });
 
-  function botMove() {
-    const emptyIndices = localBoard.map((v, i) => v === "" ? i : null).filter(v => v !== null);
-    if (emptyIndices.length === 0) return;
-    const chosen = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-    localBoard[chosen] = "O";
-    renderTTTBoard(localBoard);
-    checkWin(localBoard, "O");
-  }
-}
+    // Physics Engine & Real-Time Simulation
+    let lastNetworkSync = 0;
 
-function renderTTTBoard(board) {
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell, i) => {
-    cell.innerText = board[i];
-    cell.style.color = board[i] === "X" ? "#d32f2f" : "#1976d2";
-  });
-}
+    function updateSimulation() {
+      if (!gameActive) return;
 
-function checkWin(b, player) {
-  const wins = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
-  ];
-  for (let comb of wins) {
-    if (b[comb[0]] === player && b[comb[1]] === player && b[comb[2]] === player) {
-      setTimeout(() => alert(`Player ${player} wins!`), 10);
-      return true;
+      const spec = SPECS[localPlayer.type];
+
+      // Player Acceleration
+      if (keys.forward) {
+        localPlayer.speed += spec.accel;
+        if (localPlayer.speed > spec.maxSpeed * 0.8) {
+          const flameX = localPlayer.x - Math.cos(localPlayer.angle) * 16;
+          const flameY = localPlayer.y - Math.sin(localPlayer.angle) * 16;
+          spawnSmoke(flameX, flameY, Math.random() > 0.5 ? "#f97316" : "#38bdf8");
+        }
+      }
+      if (keys.backward) {
+        localPlayer.speed -= spec.accel * 0.7;
+        if (localPlayer.speed > 1) {
+          spawnSmoke(localPlayer.x, localPlayer.y, "rgba(220,220,220,0.5)");
+          addSkidmark(localPlayer.x, localPlayer.y);
+        }
+      }
+
+      localPlayer.speed *= spec.friction;
+      localPlayer.speed = Math.max(-spec.maxSpeed * 0.4, Math.min(spec.maxSpeed, localPlayer.speed));
+
+      // Steering
+      if (Math.abs(localPlayer.speed) > 0.1) {
+        const dir = localPlayer.speed > 0 ? 1 : -1;
+        if (keys.left) localPlayer.angle -= spec.turnSpeed * dir;
+        if (keys.right) localPlayer.angle += spec.turnSpeed * dir;
+
+        if ((keys.left || keys.right) && Math.abs(localPlayer.speed) > 3.2) {
+          addSkidmark(localPlayer.x, localPlayer.y);
+          spawnSmoke(localPlayer.x, localPlayer.y, "rgba(240,240,240,0.35)");
+        }
+      }
+
+      localPlayer.x += Math.cos(localPlayer.angle) * localPlayer.speed;
+      localPlayer.y += Math.sin(localPlayer.angle) * localPlayer.speed;
+
+      // Track Lap Checkpoints
+      if (localPlayer.x < 200) localPlayer.passedHalf = true;
+      if (localPlayer.passedHalf && localPlayer.x >= 440 && localPlayer.y > 380) {
+        localPlayer.passedHalf = false;
+        localPlayer.lap += 1;
+        hudLap.textContent = `${Math.min(localPlayer.lap, 3)}/3`;
+
+        if (localPlayer.lap > 3) {
+          raceWinner = localPlayer.name;
+          gameActive = false;
+          btnRematch.classList.remove("hidden");
+          if (!isAiGame) {
+            update(ref(db, `racing_v4/${roomCode}`), { status: "ended", winner: localPlayer.name });
+          }
+        }
+      }
+
+      localPlayer.x = Math.max(30, Math.min(canvas.width - 30, localPlayer.x));
+      localPlayer.y = Math.max(30, Math.min(canvas.height - 30, localPlayer.y));
+      hudSpeed.textContent = Math.round(Math.abs(localPlayer.speed) * 28);
+
+      // AI Bot Navigation
+      if (isAiGame) {
+        const targetWp = AI_WAYPOINTS[opponent.wpIdx];
+        const dx = targetWp.x - opponent.x;
+        const dy = targetWp.y - opponent.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < 55) {
+          opponent.wpIdx = (opponent.wpIdx + 1) % AI_WAYPOINTS.length;
+        }
+
+        const targetAngle = Math.atan2(dy, dx);
+        let angleDiff = targetAngle - opponent.angle;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+
+        opponent.angle += Math.sign(angleDiff) * Math.min(opponent.turnSpeed, Math.abs(angleDiff));
+
+        if (Math.abs(angleDiff) > 0.7) {
+          opponent.speed *= 0.97;
+          if (opponent.speed > 3) {
+            addSkidmark(opponent.x, opponent.y);
+            spawnSmoke(opponent.x, opponent.y, "rgba(220,220,220,0.35)");
+          }
+        } else {
+          opponent.speed += opponent.accel;
+        }
+
+        opponent.speed = Math.min(opponent.maxSpeed, opponent.speed);
+        opponent.x += Math.cos(opponent.angle) * opponent.speed;
+        opponent.y += Math.sin(opponent.angle) * opponent.speed;
+
+        if (opponent.x < 200) opponent.passedHalf = true;
+        if (opponent.passedHalf && opponent.x >= 440 && opponent.y > 380) {
+          opponent.passedHalf = false;
+          opponent.lap += 1;
+          if (opponent.lap > 3) {
+            raceWinner = opponent.name;
+            gameActive = false;
+            btnRematch.classList.remove("hidden");
+          }
+        }
+      } else {
+        opponent.x += (opponent.targetX - opponent.x) * 0.35;
+        opponent.y += (opponent.targetY - opponent.y) * 0.35;
+        opponent.angle += (opponent.targetAngle - opponent.angle) * 0.35;
+
+        const now = performance.now();
+        if (now - lastNetworkSync > 40 && roomCode) {
+          lastNetworkSync = now;
+          update(ref(db, `racing_v4/${roomCode}/${myRole}`), {
+            x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, speed: localPlayer.speed, lap: localPlayer.lap
+          });
+        }
+      }
     }
-  }
-  return false;
-}
-      
+
+    // Canvas Graphics Loop
+    function render() {
+      // Grass Surface
+      ctx.fillStyle = "#064e3b";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "rgba(4, 120, 87, 0.4)";
+      ctx.lineWidth = 2;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+
+      // Outer Corner Kerbs
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.roundRect(43, 43, canvas.width - 86, canvas.height - 86, 145);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 14;
+      ctx.setLineDash([16, 16]);
+      ctx.beginPath();
+      ctx.roundRect(43, 43, canvas.width - 86, canvas.height - 86, 145);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Asphalt Track
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 100, 140);
+      ctx.fill();
+
+      // Inner Island
+      ctx.fillStyle = "#064e3b";
+      ctx.beginPath();
+      ctx.roundRect(190, 160, canvas.width - 380, canvas.height - 320, 80);
+      ctx.fill();
+
+      // Inner Kerbs
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.roundRect(185, 155, canvas.width - 370, canvas.height - 310, 85);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.setLineDash([12, 12]);
+      ctx.beginPath();
+      ctx.roundRect(185, 155, canvas.width - 370, canvas.height - 310, 85);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Center Line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([14, 14]);
+      ctx.beginPath();
+      ctx.roundRect(120, 105, canvas.width - 240, canvas.height - 210, 110);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Skidmarks
+      for (let i = 0; i < skidmarks.length; i++) {
+        const mark = skidmarks[i];
+        ctx.fillStyle = `rgba(10, 15, 25, ${mark.alpha})`;
+        ctx.beginPath();
+        ctx.arc(mark.x, mark.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        mark.alpha -= 0.0008;
+      }
+
+      // Checkered Line
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 2; c++) {
+          ctx.fillStyle = (r + c) % 2 === 0 ? "#ffffff" : "#000000";
+          ctx.fillRect(440 + c * 10, 360 + r * 16, 10, 16);
+        }
+      }
+
+      // Smoke & Flame Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.015;
+        p.size *= 1.02;
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+
+      // Render Opponent
+      drawVehicle(opponent.x, opponent.y, opponent.angle, opponent.type, opponent.name, "#ef4444");
+
+      // Render Player
+      drawVehicle(localPlayer.x, localPlayer.y, localPlayer.angle, localPlayer.type, `${localPlayer.name} (You)`, "#38bdf8");
+
+      // Speed Distortion Lines
+      if (Math.abs(localPlayer.speed) > SPECS[localPlayer.type].maxSpeed * 0.9) {
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+        ctx.lineWidth = 1.5;
+        for (let j = 0; j < 6; j++) {
+          const rx = Math.random() * canvas.width;
+          const ry = Math.random() * canvas.height;
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+          ctx.lineTo(rx - Math.cos(localPlayer.angle) * 35, ry - Math.sin(localPlayer.angle) * 35);
+          ctx.stroke();
+        }
+      }
+
+      // Winner Banner
+      if (raceWinner) {
+        ctx.fillStyle = "rgba(7, 10, 18, 0.88)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#facc15";
+        ctx.font = "bold 38px system-ui";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "#f59e0b";
+        ctx.shadowBlur = 15;
+        ctx.fillText(`🏆 ${raceWinner} WINS!`, canvas.width / 2, canvas.height / 2 - 10);
+        ctx.shadowBlur = 0;
+
+        ctx.font = "16px system-ui";
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillText("Click 'Race Again' below to restart", canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+
+    function drawVehicle(x, y, angle, type, label, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.4)";
+      ctx.beginPath();
+      ctx.roundRect(-18, -10, 36, 20, 6);
+      ctx.fill();
+
+      if (type === "car") {
+        ctx.fillStyle = color;
+        ctx.beginPath(); 
+        ctx.roundRect(-16, -9, 32, 18, 4); 
+        ctx.fill();
+
+        ctx.fillStyle = "#0f172a"; 
+        ctx.fillRect(-2, -7, 11, 14);
+
+        ctx.fillStyle = "#e0f2fe";
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 8;
+        ctx.fillRect(14, -8, 3, 4);
+        ctx.fillRect(14, 4, 3, 4);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(-12, -12, 8, 3.5); 
+        ctx.fillRect(6, -12, 8, 3.5);
+        ctx.fillRect(-12, 8.5, 8, 3.5); 
+        ctx.fillRect(6, 8.5, 8, 3.5);
+      } else {
+        ctx.fillStyle = color; 
+        ctx.fillRect(-12, -3, 24, 6);
+
+        ctx.fillStyle = "#090d16"; 
+        ctx.fillRect(-14, -2, 6, 4); 
+        ctx.fillRect(8, -2, 6, 4);
+
+        ctx.fillStyle = "#ffffff"; 
+        ctx.beginPath(); 
+        ctx.arc(0, 0, 5, 0, Math.PI * 2); 
+        ctx.fill();
+
+        ctx.fillStyle = "#fef08a";
+        ctx.shadowColor = "#facc15";
+        ctx.shadowBlur = 6;
+        ctx.fillRect(12, -1.5, 3, 3);
+        ctx.shadowBlur = 0;
+      }
+      ctx.restore();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(label, x, y - 18);
+      ctx.shadowBlur = 0;
+    }
+
+    function loop() {
+      updateSimulation();
+      render();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
