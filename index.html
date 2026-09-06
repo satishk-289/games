@@ -437,10 +437,25 @@
         document.getElementById("hud-stat-1").style.display = "block";
         document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
         document.getElementById("hud-stat-2").style.display = activeGame === "race" ? "block" : "none";
-        if (activeGame === "soccer") {
+        
+          if (activeGame === "basket") {
+          document.getElementById("b-gas").textContent = "JUMP";
+          document.getElementById("b-brake").textContent = "SHOOT";
+          basketball.init("gameCanvas", {
+            isSolo: isSolo,
+            myRole: myRole,
+            p1Name: p1.name,
+            p2Name: isSolo ? "AI Bot 🤖" : p2.name,
+            roomCode: roomCode,
+            db: db,
+            ref: ref,
+            update: update
+          });
+        } else if (activeGame === "soccer") {
           document.getElementById("b-gas").textContent = "JUMP";
           document.getElementById("b-brake").textContent = "KICK";
           football.init("gameCanvas", {
+
             isSolo: isSolo,
             myRole: myRole,
             p1Name: p1.name,
