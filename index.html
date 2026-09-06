@@ -322,12 +322,12 @@
       document.getElementById("solo-veh").style.display = gameKey === "race" ? "block" : "none";
       document.getElementById("btn-start-solo").textContent = gameKey === "ttt" ? "Play vs Bot" : (gameKey === "run" ? "Start Sprint vs Bot" : "Race vs AI");
     }
-    document.getElementById("open-devil").onclick = () => openGame("devil", "Level Devil");
-    document.getElementById("open-race").onclick = () => openGame("race", "Apex Race 2P");
-    document.getElementById("open-run").onclick  = () => openGame("run", "Speed Runner 2P");
-    document.getElementById("open-ttt").onclick  = () => openGame("ttt", "Tic Tac Toe 2P");
+    document.getElementById("open-race").onclick = () => openGame("race", "Apex Race");
+    document.getElementById("open-run").onclick = () => openGame("run", "Speed Run");
+    document.getElementById("open-ttt").onclick = () => openGame("ttt", "Tic Tac Toe");
     document.getElementById("open-soccer").onclick = () => openGame("soccer", "Soccer Duel 2P");
     document.getElementById("open-basket").onclick = () => openGame("basket", "Basket Random 2P");
+    document.getElementById("open-devil").onclick = () => openGame("devil", "Level Devil");
     document.getElementById("btn-close-pop").onclick = () => pop.classList.add("hidden");
     document.getElementById("btn-exit-arena").onclick = () => location.reload();
 
