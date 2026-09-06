@@ -3,22 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Arcade Hub - Multiplayer Games</title>
+  <title>Arcade Hub - 2 Player Games</title>
   <style>
     :root {
-      --bg: #090d16;
-      --panel: #131d2e;
+      --bg: #141126;
+      --card-bg: #1f1a3a;
       --accent: #38bdf8;
-      --green: #22c55e;
-      --red: #ef4444;
-      --yellow: #facc15;
-      --purple: #a855f7;
-      --text: #f8fafc;
-      --muted: #64748b;
+      --text: #ffffff;
+      --muted: #94a3b8;
     }
     * { 
       box-sizing: border-box; 
-      font-family: system-ui, -apple-system, sans-serif; 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
       margin: 0; padding: 0; 
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -43,98 +39,111 @@
       padding: 0.65rem 1rem;
       text-align: center;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: block;
       cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
       letter-spacing: 0.5px;
-      transition: opacity 0.2s;
     }
-    .creator-banner:hover { opacity: 0.95; }
+    .creator-banner:hover { opacity: 0.92; }
 
-    .main-wrapper {
+    .main-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 600px;
+      padding: 1.5rem 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.25rem 1rem;
     }
 
-    /* Menu / Lobby Cards */
+    .hub-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Game App Icon Grid */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 440px) {
+      .games-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    }
+
+    .game-card {
+      aspect-ratio: 1;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+      padding: 6px;
+      text-align: center;
+    }
+    .game-card:active { transform: scale(0.92); }
+    .game-card .icon { font-size: 2.2rem; margin-bottom: 4px; }
+    .game-card .name { font-size: 0.72rem; font-weight: 800; line-height: 1.1; }
+
+    /* Unique Card Themes */
+    .card-racer   { background: linear-gradient(145deg, #0284c7, #0369a1); border-color: #38bdf8; }
+    .card-pong    { background: linear-gradient(145deg, #10b981, #047857); border-color: #34d399; }
+    .card-ttt     { background: linear-gradient(145deg, #f59e0b, #b45309); border-color: #fde047; }
+    .card-pool    { background: linear-gradient(145deg, #8b5cf6, #6d28d9); border-color: #c084fc; }
+    .card-locked  { background: #1e1b38; opacity: 0.55; cursor: not-allowed; border-color: #2e2854; }
+    .lock-tag {
+      position: absolute;
+      top: 4px; right: 4px;
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.6);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    /* Matchmaking Panels */
     .panel {
-      background: var(--panel);
-      border: 1px solid #1e293b;
-      border-radius: 14px;
+      background: var(--card-bg);
+      border: 1px solid #332b5e;
+      border-radius: 16px;
       padding: 1.5rem;
       width: 100%;
-      max-width: 460px;
+      max-width: 440px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
       text-align: center;
     }
-    h1 { font-size: 1.8rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 0.2rem; }
-    p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
 
-    /* Game Selection Cards */
-    .game-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      margin-top: 0.5rem;
-    }
-    .game-card {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 1rem;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s;
-    }
-    .game-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      background: #1e293b;
-    }
-    .game-card h3 { font-size: 1.05rem; color: #f8fafc; }
-    .game-card p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-    .badge {
-      font-size: 0.75rem;
-      padding: 4px 8px;
-      border-radius: 20px;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    /* Matchmaking Tabs */
     .tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
     .tab {
       flex: 1;
       padding: 0.65rem;
       border-radius: 8px;
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: #141126;
+      border: 1px solid #332b5e;
       color: var(--text);
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
     }
     .tab.active { background: var(--accent); color: #090d16; border-color: var(--accent); }
 
     input, select, button {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.8rem;
       border-radius: 8px;
-      border: 1px solid #334155;
-      background: #0b1120;
+      border: 1px solid #332b5e;
+      background: #141126;
       color: var(--text);
       font-size: 0.95rem;
       margin-bottom: 0.85rem;
@@ -142,7 +151,7 @@
     button.btn-action {
       background: var(--accent);
       color: #090d16;
-      font-weight: 700;
+      font-weight: 800;
       border: none;
       cursor: pointer;
       padding: 0.85rem;
@@ -151,203 +160,233 @@
     button.btn-action:hover { opacity: 0.9; }
 
     .code-box {
-      background: #090d16;
+      background: #141126;
       border: 2px dashed var(--accent);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 0.85rem;
       font-size: 2.2rem;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 6px;
       color: var(--accent);
       margin: 1rem 0;
     }
 
-    .player-list-box {
-      background: #090d16;
-      border-radius: 8px;
-      padding: 0.75rem;
-      margin: 0.85rem 0;
-      text-align: left;
-    }
-    .player-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      padding: 4px 0;
-      border-bottom: 1px solid #1e293b;
-    }
-    .player-row:last-child { border-bottom: none; }
-
-    /* Canvas View */
-    #arena-container {
+    /* Game Play Area */
+    #game-arena {
       display: none;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      max-width: 900px;
-    }
-    .hud-line {
-      width: 100%;
       max-width: 880px;
+    }
+    .hud {
       display: flex;
       justify-content: space-between;
+      width: 100%;
       color: var(--muted);
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 0.4rem;
     }
-    .hud-line b { color: var(--text); }
-    .canvas-wrapper {
-      width: 100%;
-      max-width: 880px;
-      position: relative;
-    }
+    .hud b { color: #fff; }
     canvas {
-      border: 2px solid #334155;
-      border-radius: 12px;
+      border: 2px solid #332b5e;
+      border-radius: 14px;
       width: 100%;
       height: auto;
       display: block;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: #090d16;
     }
 
-    /* Mobile Controls */
+    /* Mobile Controls for Racer / Pong */
     .mobile-controls {
       display: flex;
       justify-content: space-between;
       width: 100%;
       max-width: 880px;
       margin-top: 0.8rem;
-      padding: 0 0.5rem;
     }
-    .ctrl-group { display: flex; gap: 12px; }
+    .ctrl-group { display: flex; gap: 10px; }
     .touch-btn {
-      width: 65px;
-      height: 65px;
+      width: 65px; height: 65px;
       border-radius: 50%;
-      background: rgba(30, 41, 59, 0.85);
+      background: #1f1a3a;
       border: 2px solid #475569;
-      color: #f8fafc;
+      color: #fff;
       font-size: 1.4rem;
       font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      touch-action: none;
+    }
+    .touch-btn:active { background: var(--accent); color: #000; }
+    .touch-btn.gas:active { background: #22c55e; }
+    .touch-btn.brake:active { background: #ef4444; }
+
+    /* Tic-Tac-Toe Arena */
+    #ttt-box {
+      display: none;
+      width: 100%;
+      max-width: 360px;
+      margin-top: 1rem;
+    }
+    .ttt-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .ttt-cell {
+      aspect-ratio: 1;
+      background: #141126;
+      border: 2px solid #332b5e;
+      border-radius: 12px;
+      font-size: 2.8rem;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      touch-action: none;
+      color: var(--accent);
     }
-    .touch-btn:active, .touch-btn.active { background: var(--accent); color: #090d16; }
-    .touch-btn.gas:active, .touch-btn.gas.active { background: var(--green); color: #fff; }
-    .touch-btn.brake:active, .touch-btn.brake.active { background: var(--red); color: #fff; }
 
-    .btn-leave {
+    .btn-back {
       background: transparent;
       border: 1px solid #475569;
       color: var(--muted);
-      padding: 0.4rem 0.8rem;
-      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 0.6rem;
-      font-size: 0.8rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
     }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- Instagram Creator Banner -->
+  <!-- Top Instagram Creator Banner -->
   <a class="creator-banner" href="https://www.instagram.com/_satish_official_16?stkn=MTNzNXZ2cWpkdmRtNA==" target="_blank" rel="noopener noreferrer">
-    <span>⚡ Created by Satish • Follow on Instagram</span>
+    Created by satish
   </a>
 
-  <div class="main-wrapper">
+  <div class="main-container">
 
-    <!-- 1. MAIN MENU: SELECT GAME -->
-    <div class="panel" id="menu-view">
-      <h1>ARCADE ARENA</h1>
-      <p class="sub">Choose a game to play with 2 to 4 friends</p>
+    <!-- 1. HUB MENU VIEW: APP ICONS -->
+    <div id="hub-view" style="width: 100%; text-align: center;">
+      <div class="hub-title">NO WIFI GAMES</div>
 
-      <div class="game-grid">
-        <div class="game-card" id="card-racing">
-          <div>
-            <h3>🏎️ Apex Circuit</h3>
-            <p>High speed track race with cars & bikes</p>
-          </div>
-          <span class="badge">2–4 Players</span>
+      <div class="games-grid">
+        <!-- Playable Game 1 -->
+        <div class="game-card card-racer" id="launch-racer">
+          <div class="icon">🏎️</div>
+          <div class="name">Apex Race</div>
         </div>
 
-        <div class="game-card" id="card-battle">
-          <div>
-            <h3>💥 Neon Battle Arena</h3>
-            <p>Survival bumper derby; bump opponents off the grid</p>
-          </div>
-          <span class="badge">2–4 Players</span>
+        <!-- Playable Game 2 -->
+        <div class="game-card card-pong" id="launch-pong">
+          <div class="icon">🏓</div>
+          <div class="name">Neon Pong</div>
         </div>
+
+        <!-- Playable Game 3 -->
+        <div class="game-card card-ttt" id="launch-ttt">
+          <div class="icon">⭕</div>
+          <div class="name">Tic Tac Toe</div>
+        </div>
+
+        <!-- Playable Game 4 -->
+        <div class="game-card card-pool" id="launch-pool">
+          <div class="icon">🎱</div>
+          <div class="name">8-Ball Duel</div>
+        </div>
+
+        <!-- Upcoming Cards (Visual App Style) -->
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">♟️</div><div class="name">Chess</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🎲</div><div class="name">Ludo</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🃏</div><div class="name">Cards</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🧩</div><div class="name">Blocks</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🔴</div><div class="name">Connect 4</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🥏</div><div class="name">Air Hockey</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">🐍</div><div class="name">Snake 2P</div></div>
+        <div class="game-card card-locked"><div class="lock-tag">SOON</div><div class="icon">💣</div><div class="name">Sweeper</div></div>
       </div>
     </div>
 
-    <!-- 2. LOBBY: CREATE / JOIN -->
-    <div class="panel hidden" id="lobby-view">
-      <button class="btn-leave" id="btn-back-menu" style="margin-bottom: 0.85rem; width: auto;">← Choose Another Game</button>
-      <h2 id="lobby-game-title" style="color: var(--accent); font-size: 1.4rem; margin-bottom: 0.2rem;">Apex Circuit</h2>
-      <p class="sub">Room Capacity: 2 to 4 Players</p>
+    <!-- 2. MATCHMAKING PANEL -->
+    <div class="panel hidden" id="lobby-panel">
+      <h2 id="lobby-title" style="color: var(--accent); margin-bottom: 0.2rem;">Matchmaking</h2>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1.25rem;">2-Player Online Match</p>
 
       <div class="tabs">
-        <button class="tab active" id="tab-create">Create Match</button>
-        <button class="tab" id="tab-join">Join Match</button>
+        <button class="tab active" id="tab-create">Create Room</button>
+        <button class="tab" id="tab-join">Join Room</button>
       </div>
 
-      <!-- Create Form -->
       <div id="section-create">
-        <input type="text" id="create-name" placeholder="Your Driver Name" maxlength="12" value="Player 1" />
-        <select id="create-vehicle">
-          <option value="car">🏎️ Sports Car</option>
-          <option value="bike">🏍️ Racing Bike</option>
-        </select>
+        <input type="text" id="create-name" placeholder="Driver / Player Name" maxlength="12" value="Player 1" />
+        <div id="vehicle-select-wrap">
+          <select id="create-vehicle">
+            <option value="car">🏎️ Sports Car</option>
+            <option value="bike">🏍️ Racing Bike</option>
+          </select>
+        </div>
         <button class="btn-action" id="btn-create-room">Create Room & Get Code</button>
       </div>
 
-      <!-- Join Form -->
       <div id="section-join" class="hidden">
-        <input type="text" id="join-name" placeholder="Your Driver Name" maxlength="12" value="Player 2" />
-        <select id="join-vehicle">
-          <option value="car">🏎️ Sports Car</option>
-          <option value="bike">🏍️ Racing Bike</option>
-        </select>
+        <input type="text" id="join-name" placeholder="Driver / Player Name" maxlength="12" value="Player 2" />
+        <div id="vehicle-join-wrap">
+          <select id="join-vehicle">
+            <option value="car">🏎️ Sports Car</option>
+            <option value="bike">🏍️ Racing Bike</option>
+          </select>
+        </div>
         <input type="text" id="join-code" placeholder="Enter 4-Letter Code" maxlength="4" style="text-transform: uppercase;" />
         <button class="btn-action" id="btn-join-room">Join Match</button>
       </div>
 
-      <!-- Room Waiting Room (Host & Joiners wait here) -->
-      <div id="section-room-wait" class="hidden">
-        <p style="font-size: 0.85rem; color: var(--muted);">Share this room code with up to 3 friends:</p>
+      <div id="section-wait" class="hidden">
+        <p style="font-size: 0.85rem; color: var(--muted);">Share this room code with Player 2:</p>
         <div class="code-box" id="display-room-code">----</div>
-        
-        <div class="player-list-box">
-          <div style="font-weight: 700; font-size: 0.8rem; color: var(--accent); margin-bottom: 4px;">PLAYERS IN LOBBY (<span id="player-count">1</span>/4):</div>
-          <div id="player-rows-container"></div>
-        </div>
-
-        <button class="btn-action" id="btn-start-game">Start Game</button>
-        <p id="wait-msg" style="font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem;">Waiting for host to start...</p>
+        <p style="font-size: 0.85rem; color: var(--accent);">Waiting for Player 2 to join...</p>
       </div>
+
+      <button class="btn-back" id="btn-back-hub">← Back to Games Menu</button>
     </div>
 
-    <!-- 3. GAME ARENA VIEW -->
-    <div id="arena-container">
-      <div class="hud-line">
-        <span>Driver: <b id="hud-name">-</b></span>
-        <span>Speed: <b id="hud-speed">0</b> km/h</span>
-        <span>Lap: <b id="hud-lap">1/3</b></span>
+    <!-- 3. GAME ARENA (Canvas & Controls) -->
+    <div id="game-arena">
+      <div class="hud">
+        <span>Player: <b id="hud-name">-</b></span>
+        <span id="hud-stat-1">Speed: <b id="hud-speed">0</b> km/h</span>
+        <span id="hud-stat-2">Lap: <b id="hud-lap">1/3</b></span>
         <span>Room: <b id="hud-room">----</b></span>
       </div>
 
-      <div class="canvas-wrapper">
-        <canvas id="gameCanvas" width="880" height="520"></canvas>
+      <!-- Canvas for Racer / Pong / Pool -->
+      <canvas id="arenaCanvas" width="880" height="520"></canvas>
+
+      <!-- Tic-Tac-Toe Arena View -->
+      <div id="ttt-box">
+        <div id="ttt-turn" style="text-align: center; font-weight: 700; color: var(--accent);">Connecting...</div>
+        <div class="ttt-grid">
+          <div class="ttt-cell" data-idx="0"></div>
+          <div class="ttt-cell" data-idx="1"></div>
+          <div class="ttt-cell" data-idx="2"></div>
+          <div class="ttt-cell" data-idx="3"></div>
+          <div class="ttt-cell" data-idx="4"></div>
+          <div class="ttt-cell" data-idx="5"></div>
+          <div class="ttt-cell" data-idx="6"></div>
+          <div class="ttt-cell" data-idx="7"></div>
+          <div class="ttt-cell" data-idx="8"></div>
+        </div>
       </div>
 
-      <!-- Mobile On-Screen Controls -->
-      <div class="mobile-controls">
+      <!-- Touch Controls -->
+      <div class="mobile-controls" id="touch-controls">
         <div class="ctrl-group">
           <div class="touch-btn" id="ctrl-left">◀</div>
           <div class="touch-btn" id="ctrl-right">▶</div>
@@ -358,13 +397,13 @@
         </div>
       </div>
 
-      <button id="btn-rematch" class="btn-action hidden" style="margin-top: 12px; max-width: 220px;">Play Again</button>
-      <button class="btn-leave" id="btn-exit-to-menu">Exit to Main Menu</button>
+      <button id="btn-rematch" class="btn-action hidden" style="margin-top: 14px; max-width: 220px;">Play Again</button>
+      <button class="btn-back" id="btn-exit-game">Exit to Menu</button>
     </div>
 
   </div>
 
-  <!-- Firebase Modular Scripts -->
+  <!-- Firebase Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -388,57 +427,62 @@
     const db = getDatabase(app);
 
     let myUid = null;
-    let selectedGameType = "racing";
+    let selectedGame = "racer"; // "racer", "pong", "ttt", "pool"
     let roomCode = null;
-    let mySlot = null; // 'p1', 'p2', 'p3', 'p4'
+    let myRole = null; // "p1" or "p2"
     let currentRoom = null;
 
     signInAnonymously(auth).then(cred => { myUid = cred.user.uid; });
 
-    // UI DOM Elements
-    const menuView = document.getElementById("menu-view");
-    const lobbyView = document.getElementById("lobby-view");
-    const arenaContainer = document.getElementById("arena-container");
-    const lobbyTitle = document.getElementById("lobby-game-title");
-    const btnBackMenu = document.getElementById("btn-back-menu");
-    const btnExitToMenu = document.getElementById("btn-exit-to-menu");
+    // UI Elements
+    const hubView = document.getElementById("hub-view");
+    const lobbyPanel = document.getElementById("lobby-panel");
+    const gameArena = document.getElementById("game-arena");
+    const lobbyTitle = document.getElementById("lobby-title");
+    const btnBackHub = document.getElementById("btn-back-hub");
+    const btnExitGame = document.getElementById("btn-exit-game");
 
     const tabCreate = document.getElementById("tab-create");
     const tabJoin = document.getElementById("tab-join");
     const secCreate = document.getElementById("section-create");
     const secJoin = document.getElementById("section-join");
-    const secWait = document.getElementById("section-room-wait");
+    const secWait = document.getElementById("section-wait");
     const displayCode = document.getElementById("display-room-code");
-    const playerRows = document.getElementById("player-rows-container");
-    const playerCount = document.getElementById("player-count");
-    const btnStart = document.getElementById("btn-start-game");
-    const waitMsg = document.getElementById("wait-msg");
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const hudName = document.getElementById("hud-name");
+    const hudRoom = document.getElementById("hud-room");
+    const hudStat1 = document.getElementById("hud-stat-1");
+    const hudStat2 = document.getElementById("hud-stat-2");
     const btnRematch = document.getElementById("btn-rematch");
+    const canvas = document.getElementById("arenaCanvas");
+    const ctx = canvas.getContext("2d");
+    const tttBox = document.getElementById("ttt-box");
+    const touchControls = document.getElementById("touch-controls");
 
-    // Game Selection Handlers
-    document.getElementById("card-racing").onclick = () => openLobby("racing", "Apex Circuit (Racing)");
-    document.getElementById("card-battle").onclick = () => openLobby("battle", "Neon Battle Arena");
-
-    function openLobby(type, title) {
-      selectedGameType = type;
+    // Game Launcher Triggers
+    function openGameLobby(gameKey, title) {
+      selectedGame = gameKey;
       lobbyTitle.textContent = title;
-      menuView.classList.add("hidden");
-      lobbyView.classList.remove("hidden");
+      hubView.classList.add("hidden");
+      lobbyPanel.classList.remove("hidden");
+
+      // Hide vehicle pickers for non-racing games
+      const isRacer = gameKey === "racer";
+      document.getElementById("vehicle-select-wrap").style.display = isRacer ? "block" : "none";
+      document.getElementById("vehicle-join-wrap").style.display = isRacer ? "block" : "none";
     }
 
-    btnBackMenu.onclick = () => {
-      lobbyView.classList.add("hidden");
-      menuView.classList.remove("hidden");
-    };
+    document.getElementById("launch-racer").onclick = () => openGameLobby("racer", "Apex Race 2P");
+    document.getElementById("launch-pong").onclick = () => openGameLobby("pong", "Neon Pong 2P");
+    document.getElementById("launch-ttt").onclick = () => openGameLobby("ttt", "Tic Tac Toe 2P");
+    document.getElementById("launch-pool").onclick = () => openGameLobby("pool", "8-Ball Duel 2P");
 
-    btnExitToMenu.onclick = () => {
-      location.reload();
+    btnBackHub.onclick = () => {
+      lobbyPanel.classList.add("hidden");
+      hubView.classList.remove("hidden");
     };
+    btnExitGame.onclick = () => location.reload();
 
-    // Tabs
     tabCreate.onclick = () => {
       tabCreate.classList.add("active"); tabJoin.classList.remove("active");
       secCreate.classList.remove("hidden"); secJoin.classList.add("hidden");
@@ -448,156 +492,16 @@
       secJoin.classList.remove("hidden"); secCreate.classList.add("hidden");
     };
 
-    function generateCode() {
+    function randomCode() {
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       let res = "";
       for (let i = 0; i < 4; i++) res += chars[Math.floor(Math.random() * chars.length)];
-      return res;
+      return code;
     }
 
-    const PLAYER_COLORS = {
-      p1: "#38bdf8", // Blue
-      p2: "#ef4444", // Red
-      p3: "#22c55e", // Green
-      p4: "#facc15"  // Yellow
-    };
-
-    const START_POSITIONS = {
-      p1: { x: 440, y: 410 },
-      p2: { x: 440, y: 435 },
-      p3: { x: 400, y: 410 },
-      p4: { x: 400, y: 435 }
-    };
-
-    const SPECS = {
-      car: { accel: 0.12, maxSpeed: 4.8, turnSpeed: 0.045, friction: 0.98 },
-      bike: { accel: 0.16, maxSpeed: 4.4, turnSpeed: 0.065, friction: 0.97 }
-    };
-
-    const localDriver = { x: 440, y: 410, angle: 0, speed: 0, lap: 1, passedHalf: false, alive: true };
+    // Controls System
     const keys = { forward: false, backward: false, left: false, right: false };
-
-    // Matchmaking: Create Room (Host is P1)
-    document.getElementById("btn-create-room").onclick = async () => {
-      if (!myUid) return alert("Connecting to server...");
-      const name = document.getElementById("create-name").value.trim() || "Player 1";
-      const vehicle = document.getElementById("create-vehicle").value;
-      roomCode = generateCode();
-      mySlot = "p1";
-
-      localDriver.x = START_POSITIONS.p1.x;
-      localDriver.y = START_POSITIONS.p1.y;
-
-      const roomRef = ref(db, `arcade_v2/${roomCode}`);
-      await set(roomRef, {
-        gameType: selectedGameType,
-        status: "waiting",
-        host: myUid,
-        winner: null,
-        players: {
-          p1: { uid: myUid, name, type: vehicle, x: localDriver.x, y: localDriver.y, angle: 0, speed: 0, lap: 1, alive: true }
-        }
-      });
-
-      secCreate.classList.add("hidden");
-      tabCreate.parentElement.classList.add("hidden");
-      secWait.classList.remove("hidden");
-      displayCode.textContent = roomCode;
-      btnStart.classList.remove("hidden");
-      waitMsg.classList.add("hidden");
-
-      listenToRoom(roomCode);
-    };
-
-    // Matchmaking: Join Room (P2, P3, or P4)
-    document.getElementById("btn-join-room").onclick = async () => {
-      if (!myUid) return alert("Connecting to server...");
-      const code = document.getElementById("join-code").value.trim().toUpperCase();
-      const name = document.getElementById("join-name").value.trim() || "Player";
-      const vehicle = document.getElementById("join-vehicle").value;
-
-      if (code.length !== 4) return alert("Enter a 4-letter room code");
-
-      const roomRef = ref(db, `arcade_v2/${code}`);
-      const snap = await get(roomRef);
-      if (!snap.exists()) return alert("Room not found!");
-
-      const data = snap.val();
-      if (data.status !== "waiting") return alert("Game already in progress!");
-
-      const activePlayers = data.players || {};
-      const slots = ["p1", "p2", "p3", "p4"];
-      const freeSlot = slots.find(s => !activePlayers[s]);
-
-      if (!freeSlot) return alert("Room is already full (Max 4 players)!");
-
-      mySlot = freeSlot;
-      roomCode = code;
-      selectedGameType = data.gameType;
-
-      localDriver.x = START_POSITIONS[mySlot].x;
-      localDriver.y = START_POSITIONS[mySlot].y;
-
-      await update(ref(db, `arcade_v2/${code}/players/${mySlot}`), {
-        uid: myUid, name, type: vehicle, x: localDriver.x, y: localDriver.y, angle: 0, speed: 0, lap: 1, alive: true
-      });
-
-      secJoin.classList.add("hidden");
-      tabCreate.parentElement.classList.add("hidden");
-      secWait.classList.remove("hidden");
-      displayCode.textContent = roomCode;
-      btnStart.classList.add("hidden");
-      waitMsg.classList.remove("hidden");
-
-      listenToRoom(roomCode);
-    };
-
-    // Host manually launches game when ready
-    btnStart.onclick = async () => {
-      if (mySlot !== "p1") return;
-      const count = Object.keys(currentRoom.players || {}).length;
-      if (count < 2) return alert("Need at least 2 players to start!");
-      await update(ref(db, `arcade_v2/${roomCode}`), { status: "playing" });
-    };
-
-    function listenToRoom(code) {
-      const roomRef = ref(db, `arcade_v2/${code}`);
-      onDisconnect(ref(db, `arcade_v2/${code}/players/${mySlot}`)).remove();
-
-      onValue(roomRef, (snap) => {
-        const data = snap.val();
-        if (!data) return;
-        currentRoom = data;
-
-        // Update Lobby Player List
-        const players = data.players || {};
-        const count = Object.keys(players).length;
-        playerCount.textContent = count;
-        playerRows.innerHTML = Object.entries(players).map(([slot, p]) => `
-          <div class="player-row">
-            <span style="color:${PLAYER_COLORS[slot]}; font-weight:700;">● ${p.name} (${slot.toUpperCase()})</span>
-            <span style="color:var(--muted);">${p.type.toUpperCase()}</span>
-          </div>
-        `).join("");
-
-        // Transition from lobby to game
-        if (data.status === "playing" && arenaContainer.style.display !== "flex") {
-          lobbyView.classList.add("hidden");
-          arenaContainer.style.display = "flex";
-          document.getElementById("hud-name").textContent = players[mySlot].name;
-          document.getElementById("hud-room").textContent = code;
-          if (data.gameType === "battle") {
-            document.getElementById("hud-lap").parentElement.classList.add("hidden");
-          }
-        }
-
-        if (data.status === "ended") {
-          btnRematch.classList.remove("hidden");
-        }
-      });
-    }
-
-        window.addEventListener("keydown", (e) => {
+    window.addEventListener("keydown", (e) => {
       if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.forward = true;
       if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.backward = true;
       if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
@@ -610,43 +514,130 @@
       if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
     });
 
-    function setupTouch(id, prop) {
+    function bindTouch(id, prop) {
       const el = document.getElementById(id);
-      const on = (e) => { e.preventDefault(); keys[prop] = true; el.classList.add("active"); };
-      const off = (e) => { e.preventDefault(); keys[prop] = false; el.classList.remove("active"); };
+      const on = (e) => { e.preventDefault(); keys[prop] = true; };
+      const off = (e) => { e.preventDefault(); keys[prop] = false; };
       el.addEventListener("touchstart", on, { passive: false });
       el.addEventListener("touchend", off, { passive: false });
       el.addEventListener("mousedown", on);
       el.addEventListener("mouseup", off);
       el.addEventListener("mouseleave", off);
     }
-    setupTouch("ctrl-left", "left");
-    setupTouch("ctrl-right", "right");
-    setupTouch("ctrl-gas", "forward");
-    setupTouch("ctrl-brake", "backward");
+    bindTouch("ctrl-left", "left");
+    bindTouch("ctrl-right", "right");
+    bindTouch("ctrl-gas", "forward");
+    bindTouch("ctrl-brake", "backward");
+
+    // Local Entities
+    const localRacer = { x: 440, y: 415, angle: 0, speed: 0, lap: 1, passedHalf: false };
+    let localPaddleY = 210;
+
+    // Matchmaking: Host Creates
+    document.getElementById("btn-create-room").onclick = async () => {
+      if (!myUid) return alert("Connecting to server...");
+      const name = document.getElementById("create-name").value.trim() || "Player 1";
+      const vehicle = document.getElementById("create-vehicle").value;
+      roomCode = randomCode();
+      myRole = "p1";
+
+      const roomRef = ref(db, `arcade_hub/${roomCode}`);
+      await set(roomRef, {
+        game: selectedGame,
+        status: "waiting",
+        winner: null,
+        p1: { name, type: vehicle, x: 440, y: 415, angle: 0, speed: 0, lap: 1, paddleY: 210, score: 0 },
+        p2: null,
+        pongBall: { x: 440, y: 260, vx: 6, vy: 3 },
+        poolCue: { angle: 0, power: 0, ballX: 250, ballY: 260, targetX: 630, targetY: 260 },
+                ttt: { board: ["","","","","","","","",""], turn: "X", winner: null }
+      });
+
+      secCreate.classList.add("hidden");
+      secWait.classList.remove("hidden");
+      displayCode.textContent = roomCode;
+
+      listenToRoom(roomCode);
+    };
+
+    // Matchmaking: Challenger Joins
+    document.getElementById("btn-join-room").onclick = async () => {
+      if (!myUid) return alert("Connecting to server...");
+      const code = document.getElementById("join-code").value.trim().toUpperCase();
+      const name = document.getElementById("join-name").value.trim() || "Player 2";
+      const vehicle = document.getElementById("join-vehicle").value;
+
+      if (code.length !== 4) return alert("Enter 4-letter room code");
+
+      const roomRef = ref(db, `arcade_hub/${code}`);
+      const snap = await get(roomRef);
+      if (!snap.exists()) return alert("Room not found!");
+
+      const data = snap.val();
+      if (data.p2) return alert("Room is already full!");
+
+      roomCode = code;
+      myRole = "p2";
+      selectedGame = data.game;
+
+      await update(roomRef, {
+        status: "playing",
+        p2: { name, type: vehicle, x: 440, y: 445, angle: 0, speed: 0, lap: 1, paddleY: 210, score: 0 }
+      });
+
+      listenToRoom(roomCode);
+    };
+
+    function listenToRoom(code) {
+      const roomRef = ref(db, `arcade_hub/${code}`);
+      onDisconnect(ref(db, `arcade_hub/${code}/${myRole}/connected`)).set(false);
+
+      onValue(roomRef, (snap) => {
+        const data = snap.val();
+        if (!data) return;
+        currentRoom = data;
+
+        if (data.status === "playing" && gameArena.style.display !== "flex") {
+          lobbyPanel.classList.add("hidden");
+          gameArena.style.display = "flex";
+          hudName.textContent = data[myRole].name;
+          hudRoom.textContent = code;
+
+          if (selectedGame === "ttt") {
+            canvas.style.display = "none";
+            tttBox.style.display = "block";
+            touchControls.style.display = "none";
+            hudStat1.style.display = "none";
+            hudStat2.style.display = "none";
+          } else {
+            canvas.style.display = "block";
+            tttBox.style.display = "none";
+            touchControls.style.display = selectedGame === "pool" ? "none" : "flex";
+          }
+        }
+
+        if (data.status === "ended") {
+          btnRematch.classList.remove("hidden");
+        }
+
+        if (selectedGame === "ttt") updateTTT(data.ttt);
+      });
+    }
 
     // Rematch Reset
     btnRematch.onclick = async () => {
-      const resetPlayers = {};
-      Object.keys(currentRoom.players).forEach(slot => {
-        resetPlayers[`players/${slot}/x`] = START_POSITIONS[slot].x;
-        resetPlayers[`players/${slot}/y`] = START_POSITIONS[slot].y;
-        resetPlayers[`players/${slot}/angle`] = 0;
-        resetPlayers[`players/${slot}/speed`] = 0;
-        resetPlayers[`players/${slot}/lap`] = 1;
-        resetPlayers[`players/${slot}/alive`] = true;
-      });
-      localDriver.x = START_POSITIONS[mySlot].x;
-      localDriver.y = START_POSITIONS[mySlot].y;
-      localDriver.angle = 0;
-      localDriver.speed = 0;
-      localDriver.lap = 1;
-      localDriver.alive = true;
+      const roomRef = ref(db, `arcade_hub/${roomCode}`);
+      localRacer.x = 440;
+      localRacer.y = myRole === "p1" ? 415 : 445;
+      localRacer.speed = 0; localRacer.angle = 0; localRacer.lap = 1;
 
-      await update(ref(db, `arcade_v2/${roomCode}`), {
+      await update(roomRef, {
         status: "playing",
         winner: null,
-        ...resetPlayers
+        "p1/x": 440, "p1/y": 415, "p1/speed": 0, "p1/angle": 0, "p1/lap": 1, "p1/score": 0,
+        "p2/x": 440, "p2/y": 445, "p2/speed": 0, "p2/angle": 0, "p2/lap": 1, "p2/score": 0,
+        "pongBall": { x: 440, y: 260, vx: 6, vy: 3 },
+        "ttt": { board: ["","","","","","","","",""], turn: "X", winner: null }
       });
       btnRematch.classList.add("hidden");
     };
@@ -654,166 +645,210 @@
     // Physics Engine
     let lastSync = 0;
 
-    function updatePhysics() {
-      if (!currentRoom || currentRoom.status !== "playing" || !localDriver.alive) return;
+    function updateGamePhysics() {
+      if (!currentRoom || currentRoom.status !== "playing") return;
 
-      const myType = currentRoom.players?.[mySlot]?.type || "car";
-      const spec = SPECS[myType];
+      // 1. RACER PHYSICS
+      if (selectedGame === "racer") {
+        const spec = currentRoom[myRole]?.type === "bike" 
+          ? { accel: 0.16, max: 4.4, turn: 0.065, friction: 0.97 }
+          : { accel: 0.12, max: 4.8, turn: 0.045, friction: 0.98 };
 
-      if (keys.forward) localDriver.speed += spec.accel;
-      if (keys.backward) localDriver.speed -= spec.accel * 0.7;
-      localDriver.speed *= spec.friction;
-      localDriver.speed = Math.max(-spec.maxSpeed * 0.4, Math.min(spec.maxSpeed, localDriver.speed));
+        if (keys.forward) localRacer.speed += spec.accel;
+        if (keys.backward) localRacer.speed -= spec.accel * 0.7;
+        localRacer.speed *= spec.friction;
+        localRacer.speed = Math.max(-spec.max * 0.4, Math.min(spec.max, localRacer.speed));
 
-      if (Math.abs(localDriver.speed) > 0.1) {
-        const dir = localDriver.speed > 0 ? 1 : -1;
-        if (keys.left) localDriver.angle -= spec.turnSpeed * dir;
-        if (keys.right) localDriver.angle += spec.turnSpeed * dir;
-      }
+        if (Math.abs(localRacer.speed) > 0.1) {
+          const dir = localRacer.speed > 0 ? 1 : -1;
+          if (keys.left) localRacer.angle -= spec.turn * dir;
+          if (keys.right) localRacer.angle += spec.turn * dir;
+        }
 
-      localDriver.x += Math.cos(localDriver.angle) * localDriver.speed;
-      localDriver.y += Math.sin(localDriver.angle) * localDriver.speed;
+        localRacer.x += Math.cos(localRacer.angle) * localRacer.speed;
+        localRacer.y += Math.sin(localRacer.angle) * localRacer.speed;
 
-      // MODE 1: RACING LAP DETECTION
-      if (selectedGameType === "racing") {
-        if (localDriver.x < 200) localDriver.passedHalf = true;
-        if (localDriver.passedHalf && localDriver.x >= 440 && localDriver.y > 380) {
-          localDriver.passedHalf = false;
-          localDriver.lap += 1;
-          document.getElementById("hud-lap").textContent = `${Math.min(localDriver.lap, 3)}/3`;
-          if (localDriver.lap > 3) {
-            update(ref(db, `arcade_v2/${roomCode}`), {
-              status: "ended",
-              winner: currentRoom.players[mySlot].name
-            });
+        if (localRacer.x < 200) localRacer.passedHalf = true;
+        if (localRacer.passedHalf && localRacer.x >= 440 && localRacer.y > 380) {
+          localRacer.passedHalf = false;
+          localRacer.lap += 1;
+          document.getElementById("hud-lap").textContent = `${Math.min(localRacer.lap, 3)}/3`;
+          if (localRacer.lap > 3) {
+            update(ref(db, `arcade_hub/${roomCode}`), { status: "ended", winner: currentRoom[myRole].name });
           }
         }
+
+        document.getElementById("hud-speed").textContent = Math.round(Math.abs(localRacer.speed) * 28);
       }
 
-      // MODE 2: BATTLE ARENA RING OUT
-      if (selectedGameType === "battle") {
-        const distFromCenter = Math.hypot(localDriver.x - canvas.width / 2, localDriver.y - canvas.height / 2);
-        if (distFromCenter > 220) {
-          localDriver.alive = false;
-          update(ref(db, `arcade_v2/${roomCode}/players/${mySlot}/alive`), false);
-          
-          const aliveRemaining = Object.entries(currentRoom.players || {}).filter(([s, p]) => s !== mySlot && p.alive);
-          if (aliveRemaining.length === 1) {
-            update(ref(db, `arcade_v2/${roomCode}`), {
-              status: "ended",
-              winner: aliveRemaining[0][1].name
-            });
+      // 2. PONG PHYSICS
+      if (selectedGame === "pong") {
+        if (keys.forward || keys.left) localPaddleY -= 7;
+        if (keys.backward || keys.right) localPaddleY += 7;
+        localPaddleY = Math.max(10, Math.min(canvas.height - 90, localPaddleY));
+
+        if (myRole === "p1" && currentRoom.pongBall) {
+          const ball = { ...currentRoom.pongBall };
+          ball.x += ball.vx;
+          ball.y += ball.vy;
+
+          if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
+
+          if (ball.x <= 40 && ball.y >= localPaddleY && ball.y <= localPaddleY + 80) ball.vx = Math.abs(ball.vx);
+          const p2Y = currentRoom.p2?.paddleY || 210;
+          if (ball.x >= canvas.width - 40 && ball.y >= p2Y && ball.y <= p2Y + 80) ball.vx = -Math.abs(ball.vx);
+
+          if (ball.x < 0) {
+            update(ref(db, `arcade_hub/${roomCode}/p2/score`), (currentRoom.p2?.score || 0) + 1);
+            ball.x = 440; ball.y = 260; ball.vx = 6;
+          } else if (ball.x > canvas.width) {
+            update(ref(db, `arcade_hub/${roomCode}/p1/score`), (currentRoom.p1?.score || 0) + 1);
+            ball.x = 440; ball.y = 260; ball.vx = -6;
           }
+
+          update(ref(db, `arcade_hub/${roomCode}/pongBall`), ball);
         }
       }
-
-      localDriver.x = Math.max(30, Math.min(canvas.width - 30, localDriver.x));
-      localDriver.y = Math.max(30, Math.min(canvas.height - 30, localDriver.y));
-
-      document.getElementById("hud-speed").textContent = Math.round(Math.abs(localDriver.speed) * 28);
 
       const now = performance.now();
       if (now - lastSync > 45 && roomCode) {
         lastSync = now;
-        update(ref(db, `arcade_v2/${roomCode}/players/${mySlot}`), {
-          x: localDriver.x, y: localDriver.y, angle: localDriver.angle, speed: localDriver.speed, lap: localDriver.lap
-        });
+        if (selectedGame === "racer") {
+          update(ref(db, `arcade_hub/${roomCode}/${myRole}`), {
+            x: localRacer.x, y: localRacer.y, angle: localRacer.angle, speed: localRacer.speed, lap: localRacer.lap
+          });
+        } else if (selectedGame === "pong") {
+          update(ref(db, `arcade_hub/${roomCode}/${myRole}/paddleY`), localPaddleY);
+        }
       }
     }
 
-    // Render Canvas
+    // Rendering
     function draw() {
-      if (selectedGameType === "racing") {
+      if (selectedGame === "ttt") return;
+
+      ctx.fillStyle = "#090d16";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (selectedGame === "racer") {
         ctx.fillStyle = "#15803d";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.fillStyle = "#1e293b";
-        ctx.beginPath();
-        ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 100, 140);
-        ctx.fill();
-
+        ctx.beginPath(); ctx.roundRect(50, 50, canvas.width - 100, canvas.height - 100, 140); ctx.fill();
         ctx.fillStyle = "#15803d";
-        ctx.beginPath();
-        ctx.roundRect(190, 160, canvas.width - 380, canvas.height - 320, 80);
-        ctx.fill();
+        ctx.beginPath(); ctx.roundRect(190, 160, canvas.width - 380, canvas.height - 320, 80); ctx.fill();
 
         for (let r = 0; r < 5; r++) {
           for (let c = 0; c < 2; c++) {
-            ctx.fillStyle = (r + c) % 2 === 0 ? "#ffffff" : "#000000";
+            ctx.fillStyle = (r + c) % 2 === 0 ? "#fff" : "#000";
             ctx.fillRect(440 + c * 10, 360 + r * 16, 10, 16);
           }
         }
-      } else {
-        ctx.fillStyle = "#090d16";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, 230, 0, Math.PI * 2);
-        ctx.fill();
+        const opp = myRole === "p1" ? currentRoom.p2 : currentRoom.p1;
+        if (opp) drawVehicle(opp.x, opp.y, opp.angle, opp.type, opp.name, myRole === "p1" ? "#ef4444" : "#38bdf8");
+        drawVehicle(localRacer.x, localRacer.y, localRacer.angle, currentRoom[myRole]?.type || "car", `${currentRoom[myRole]?.name} (You)`, myRole === "p1" ? "#38bdf8" : "#ef4444");
+      } 
+      else if (selectedGame === "pong") {
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+        ctx.setLineDash([10, 10]);
+        ctx.beginPath(); ctx.moveTo(440, 0); ctx.lineTo(440, 520); ctx.stroke();
+        ctx.setLineDash([]);
 
-        ctx.fillStyle = "#1e293b";
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, 220, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+        const p1Y = myRole === "p1" ? localPaddleY : (currentRoom.p1?.paddleY || 210);
+        const p2Y = myRole === "p2" ? localPaddleY : (currentRoom.p2?.paddleY || 210);
+        ctx.fillStyle = "#38bdf8"; ctx.fillRect(20, p1Y, 14, 80);
+        ctx.fillStyle = "#ef4444"; ctx.fillRect(canvas.width - 34, p2Y, 14, 80);
+
+        ctx.font = "bold 42px system-ui";
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        ctx.textAlign = "center";
+        ctx.fillText(currentRoom.p1?.score || 0, 380, 70);
+        ctx.fillText(currentRoom.p2?.score || 0, 500, 70);
+
+        if (currentRoom.pongBall) {
+          ctx.fillStyle = "#facc15";
+          ctx.beginPath(); ctx.arc(currentRoom.pongBall.x, currentRoom.pongBall.y, 9, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      else if (selectedGame === "pool") {
+        ctx.fillStyle = "#065f46";
+        ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
+        ctx.strokeStyle = "#78350f"; ctx.lineWidth = 20;
+        ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(260, 260, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath(); ctx.arc(620, 260, 12, 0, Math.PI * 2); ctx.fill();
       }
 
-      if (!currentRoom || !currentRoom.players) return;
-
-      Object.entries(currentRoom.players).forEach(([slot, p]) => {
-        if (!p.alive && selectedGameType === "battle") return;
-        const isMe = slot === mySlot;
-        const posX = isMe ? localDriver.x : p.x;
-        const posY = isMe ? localDriver.y : p.y;
-        const angle = isMe ? localDriver.angle : p.angle;
-        drawVehicle(posX, posY, angle, p.type, `${p.name} ${isMe ? "(You)" : ""}`, PLAYER_COLORS[slot]);
-      });
-
-      if (currentRoom.status === "ended") {
+      if (currentRoom && currentRoom.status === "ended") {
         ctx.fillStyle = "rgba(9, 13, 22, 0.88)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.fillStyle = "#facc15";
         ctx.font = "bold 36px system-ui";
         ctx.textAlign = "center";
         ctx.fillText(`🏆 ${currentRoom.winner} WINS!`, canvas.width / 2, canvas.height / 2 - 10);
-
-        ctx.font = "16px system-ui";
-        ctx.fillStyle = "#f8fafc";
-        ctx.fillText("Click 'Play Again' below to reset the arena", canvas.width / 2, canvas.height / 2 + 30);
       }
     }
 
     function drawVehicle(x, y, angle, type, label, color) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
       if (type === "car") {
         ctx.fillStyle = color;
         ctx.beginPath(); ctx.roundRect(-16, -9, 32, 18, 4); ctx.fill();
         ctx.fillStyle = "#090d16"; ctx.fillRect(-2, -7, 10, 14);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(-12, -12, 8, 3); ctx.fillRect(6, -12, 8, 3);
-        ctx.fillRect(-12, 9, 8, 3); ctx.fillRect(6, 9, 8, 3);
       } else {
         ctx.fillStyle = color; ctx.fillRect(-12, -3, 24, 6);
-        ctx.fillStyle = "#000"; ctx.fillRect(-14, -2, 6, 4); ctx.fillRect(8, -2, 6, 4);
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
       }
       ctx.restore();
-
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 11px system-ui";
-      ctx.textAlign = "center";
+      ctx.fillStyle = "#fff"; ctx.font = "bold 11px system-ui"; ctx.textAlign = "center";
       ctx.fillText(label, x, y - 18);
     }
 
+    // Tic-Tac-Toe
+    const tttCells = document.querySelectorAll(".ttt-cell");
+    const tttTurnLabel = document.getElementById("ttt-turn");
+
+    function updateTTT(ttt) {
+      if (!ttt) return;
+      ttt.board.forEach((v, i) => { tttCells[i].textContent = v; });
+      const mySymbol = myRole === "p1" ? "X" : "O";
+      if (ttt.winner) {
+        tttTurnLabel.textContent = ttt.winner === "draw" ? "Match Draw!" : (ttt.winner === mySymbol ? "You Won! 🎉" : "Opponent Won!");
+        btnRematch.classList.remove("hidden");
+      } else {
+        tttTurnLabel.textContent = ttt.turn === mySymbol ? "Your Turn!" : "Opponent's Turn...";
+      }
+    }
+
+    tttCells.forEach(cell => {
+      cell.onclick = async () => {
+        if (!currentRoom || selectedGame !== "ttt") return;
+        const idx = parseInt(cell.dataset.idx);
+        const mySymbol = myRole === "p1" ? "X" : "O";
+        const tttRef = ref(db, `arcade_hub/${roomCode}/ttt`);
+
+        await runTransaction(tttRef, (t) => {
+          if (!t || t.winner || t.turn !== mySymbol || t.board[idx] !== "") return t;
+          t.board[idx] = mySymbol;
+          const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+          for (let [a,b,c] of wins) {
+            if (t.board[a] && t.board[a] === t.board[b] && t.board[a] === t.board[c]) {
+              t.winner = mySymbol; return t;
+            }
+          }
+          if (!t.board.includes("")) t.winner = "draw";
+          else t.turn = mySymbol === "X" ? "O" : "X";
+          return t;
+        });
+      };
+    });
+
     function mainLoop() {
-      updatePhysics();
+      updateGamePhysics();
       draw();
       requestAnimationFrame(mainLoop);
     }
