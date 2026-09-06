@@ -916,7 +916,215 @@ const football = {
     ctx.restore();
   }
 };
-                       
+    const levelDevil = {
+  canvas: null,
+  ctx: null,
+  p: { x: 90, y: 260, vx: 0, vy: 0, w: 16, h: 26, onGround: false, dead: false },
+  door: { x: 680, y: 260, w: 26, h: 42, active: true },
+  currentLevel: 1,
+  maxLevels: 5,
+  active: false,
+  won: false,
+  pitGap: 0,
+  fallingBlock: { x: 420, y: 60, w: 50, h: 40, vy: 0, triggered: false },
+  spikes: [],
+  pName: "Player",
+
+  init(canvasId, options = {}) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext("2d");
+    if (options.p1Name) this.pName = options.p1Name;
+    this.currentLevel = 1;
+    this.won = false;
+    this.loadLevel(this.currentLevel);
+    this.active = true;
+  },
+
+  loadLevel(lvl) {
+    this.p.x = 90;
+    this.p.y = 260;
+    this.p.vx = 0;
+    this.p.vy = 0;
+    this.p.dead = false;
+    this.pitGap = 0;
+    this.door = { x: 680, y: 260, w: 26, h: 42, active: true };
+
+    if (lvl === 3) {
+      this.spikes = [
+        { x: 340, y: 320, w: 26, h: 18, currentH: 0, triggered: false },
+        { x: 500, y: 320, w: 26, h: 18, currentH: 0, triggered: false }
+      ];
+    } else {
+      this.spikes = [];
+    }
+
+    if (lvl === 4) {
+      this.fallingBlock = { x: 420, y: 50, w: 60, h: 45, vy: 0, triggered: false };
+    }
+  },
+
+  restartCurrentLevel() {
+    this.loadLevel(this.currentLevel);
+  },
+
+  updatePhysics(keys) {
+    if (!this.active || this.won) return;
+    const p = this.p;
+
+    if (keys.b) {
+      this.restartCurrentLevel();
+      return;
+    }
+
+    if (p.dead) return;
+
+    if (keys.l) p.vx = -4.2;
+    else if (keys.r) p.vx = 4.2;
+    else p.vx *= 0.72;
+
+    if (keys.f && p.onGround) {
+      p.vy = -12.2;
+      p.onGround = false;
+    }
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.68;
+
+    if (this.currentLevel === 1) {
+      if (p.x > 330 && this.pitGap < 110) {
+        this.pitGap += 6.5;
+      }
+    } else if (this.currentLevel === 2) {
+      if (p.x > 480 && this.door.x < 740) {
+        this.door.x += 3.2;
+      }
+    } else if (this.currentLevel === 3) {
+      this.spikes.forEach(s => {
+        if (Math.abs(p.x - s.x) < 70) s.triggered = true;
+        if (s.triggered && s.currentH < s.h) s.currentH += 3;
+      });
+    } else if (this.currentLevel === 4) {
+      const fb = this.fallingBlock;
+      if (Math.abs(p.x - fb.x) < 55) fb.triggered = true;
+      if (fb.triggered && fb.y < 275) {
+        fb.vy += 1.4;
+        fb.y += fb.vy;
+      }
+    } else if (this.currentLevel === 5) {
+      if (p.x > 500 && this.door.x > 200) {
+        this.door.x = 80;
+      }
+    }
+
+    const pitX1 = 430;
+    const pitX2 = pitX1 + this.pitGap;
+    const inPit = (p.x + p.w > pitX1 && p.x < pitX2);
+
+    if (!inPit && p.y + p.h >= 320 && p.y < 332) {
+      p.y = 320 - p.h;
+      p.vy = 0;
+      p.onGround = true;
+    } else if (inPit && p.y + p.h >= 320) {
+      p.onGround = false;
+    }
+
+    if (p.y > 430) {
+      this.triggerDeath();
+    }
+
+    this.spikes.forEach(s => {
+      if (s.currentH > 4 && p.x + p.w > s.x && p.x < s.x + s.w && p.y + p.h > s.y - s.currentH) {
+        this.triggerDeath();
+      }
+    });
+
+    if (this.currentLevel === 4) {
+      const fb = this.fallingBlock;
+      if (p.x + p.w > fb.x && p.x < fb.x + fb.w && p.y + p.h > fb.y && p.y < fb.y + fb.h) {
+        this.triggerDeath();
+      }
+    }
+
+    if (this.door.active && p.x + p.w >= this.door.x && p.x <= this.door.x + this.door.w && p.y + p.h >= this.door.y) {
+      if (this.currentLevel < this.maxLevels) {
+        this.currentLevel++;
+        this.loadLevel(this.currentLevel);
+      } else {
+        this.won = true;
+        document.getElementById("btn-replay").classList.remove("hidden");
+      }
+    }
+  },
+
+  triggerDeath() {
+    this.p.dead = true;
+    setTimeout(() => this.restartCurrentLevel(), 750);
+  },
+
+  render() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    ctx.fillStyle = "#d97706";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.fillStyle = "#1c1917";
+    ctx.font = "900 22px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`LEVEL ${this.currentLevel} / ${this.maxLevels}`, 400, 42);
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(40, 180, 390, 140);
+    const rightX = 430 + this.pitGap;
+    ctx.fillRect(rightX, 180, 760 - rightX, 140);
+
+    ctx.fillStyle = "#92400e";
+    ctx.fillRect(430, 320, this.pitGap, 120);
+
+    ctx.fillStyle = "#292524";
+    this.spikes.forEach(s => {
+      if (s.currentH > 0) {
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + s.w / 2, s.y - s.currentH);
+        ctx.lineTo(s.x + s.w, s.y);
+        ctx.fill();
+      }
+    });
+
+    if (this.currentLevel === 4) {
+      ctx.fillStyle = "#451a03";
+      ctx.fillRect(this.fallingBlock.x, this.fallingBlock.y, this.fallingBlock.w, this.fallingBlock.h);
+    }
+
+    ctx.fillStyle = "#44403c";
+    ctx.fillRect(this.door.x, this.door.y, this.door.w, this.door.h);
+    ctx.strokeStyle = "#1c1917";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(this.door.x, this.door.y, this.door.w, this.door.h);
+    ctx.fillStyle = "#fbbf24";
+    ctx.beginPath();
+    ctx.arc(this.door.x + 6, this.door.y + 22, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (!this.p.dead) {
+      ctx.fillStyle = "#09090b";
+      ctx.fillRect(this.p.x + 3, this.p.y, 10, 8);
+      ctx.fillRect(this.p.x + 1, this.p.y + 8, 14, 18);
+    }
+
+    if (this.won) {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 34px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("😈 ALL LEVELS BEATEN! 😈", this.canvas.width / 2, this.canvas.height / 2);
+    }
+  }
+};
+      
     // Runner Obstacles
     const hurdles = [260, 480, 700];
 
